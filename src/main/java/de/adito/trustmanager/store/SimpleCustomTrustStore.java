@@ -14,7 +14,7 @@ public class SimpleCustomTrustStore implements ICustomTrustStore {
     }
 
     @Override
-    public void add(String pAlias, X509Certificate pCertificate) {
+    public void add(String pAlias, X509Certificate pCertificate, boolean pPersist) {
         mapping.put(pAlias, pCertificate);
     }
 }

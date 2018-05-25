@@ -6,5 +6,5 @@ public interface ICustomTrustStore {
 
     X509Certificate get(String pAlias);
 
-    void add(String pAlias, X509Certificate pCertificate);
+    void add(String pAlias, X509Certificate pCertificate, boolean pPersistent);
 }

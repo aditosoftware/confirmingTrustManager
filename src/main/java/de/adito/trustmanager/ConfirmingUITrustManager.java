@@ -19,22 +19,29 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
         super(pTrustStore);
     }
 
-    protected void promptForCertificate(
+    protected boolean checkCertificateAndShouldPersist(
             X509Certificate[] chain, CertificateException e)
             throws CertificateException {
 
         String[] options;
         options = new String[]{
-                "yes",
+                "yes once",
+                "yes always",
                 "no"
         };
         String dn = chain[0].getSubjectDN().getName();
         String caDN = chain[0].getIssuerX500Principal().getName();
-        String msg = format("certificateWarning\n" +
-                        "subject common name: %1$s\nsubject organization name: %2$s\n" +
-                        "principal common name: %3$s\nprincipal organziation name: %4$s\n" +
-                        "valid since: %5$s\nvalid till: %6$s\n" +
-                        "sha1 hash: %7$s\nmd5 hash: %8$s\n\n" +
+        String msg = format(e.getLocalizedMessage() + "\n" +
+                        "\n" +
+                        "subject common name: %1$s\n" +
+                        "subject organization name: %2$s\n" +
+                        "principal common name: %3$s\n" +
+                        "principal organziation name: %4$s\n" +
+                        "valid since: %5$s\n" +
+                        "valid till: %6$s\n" +
+                        "sha1 hash: %7$s\n" +
+                        "md5 hash: %8$s\n" +
+                        "\n" +
                         "%9$s",
                 TrustManagerUtil.parseDN(dn, "cn"),
                 TrustManagerUtil.parseDN(dn, "o"),
@@ -53,12 +60,14 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
         scrollPane.setPreferredSize(new Dimension(640, 400));
 
         int r = JOptionPane.showOptionDialog(null, scrollPane,
-                "unknownCertificateTitle",
+                "certificate is not trusted",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                 null, options, options[1]);
         switch (r) {
             case 0:
-                break;
+                return false;
+            case 1:
+                return true;
             default:
                 throw e;
         }

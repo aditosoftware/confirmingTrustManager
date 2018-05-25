@@ -94,12 +94,11 @@ public abstract class CustomTrustManager implements X509TrustManager {
             String alias = TrustManagerUtil.hashSHA1(certificate);
             if (trustStore.get(alias) != null)
                 return;
-            promptForCertificate(chain, e);
-            trustStore.add(alias, certificate);
+            boolean persist = checkCertificateAndShouldPersist(chain, e);
+            trustStore.add(alias, certificate, persist);
         }
     }
 
-    protected abstract void promptForCertificate(X509Certificate[] pChain, CertificateException pE)
+    protected abstract boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE)
             throws CertificateException;
-
 }

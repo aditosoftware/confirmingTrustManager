@@ -14,6 +14,7 @@ import java.security.cert.X509Certificate;
 public class JKSCustomTrustStore implements ICustomTrustStore {
     private Path path;
     private KeyStore ks;
+    private SimpleCustomTrustStore simpleTrustStore;
 
     public JKSCustomTrustStore() throws KeyStoreException {
         this(null);
@@ -25,6 +26,7 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
         path = pPath;
         ks = KeyStore.getInstance("JKS");
         _loadKS();
+        simpleTrustStore = new SimpleCustomTrustStore();
     }
 
     private void _loadKS() {
@@ -47,6 +49,9 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
     @Override
     public synchronized X509Certificate get(String pAlias) {
         try {
+            X509Certificate certificate = simpleTrustStore.get(pAlias);
+            if (certificate != null)
+                return certificate;
             return (X509Certificate) ks.getCertificate(pAlias);
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
@@ -54,10 +59,13 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
     }
 
     @Override
-    public synchronized void add(String pAlias, X509Certificate pCertificate) {
+    public synchronized void add(String pAlias, X509Certificate pCertificate, boolean pPersist) {
         try {
-            ks.setCertificateEntry(pAlias, pCertificate);
-            _saveKS();
+            if (pPersist) {
+                ks.setCertificateEntry(pAlias, pCertificate);
+                _saveKS();
+            } else
+                simpleTrustStore.add(pAlias, pCertificate, pPersist);
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
         }
