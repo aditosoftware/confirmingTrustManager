@@ -1,4 +1,4 @@
-package de.adito.trustmanager;
+package de.adito.trustmanager.confirmingui;
 
 
 import java.security.InvalidKeyException;
