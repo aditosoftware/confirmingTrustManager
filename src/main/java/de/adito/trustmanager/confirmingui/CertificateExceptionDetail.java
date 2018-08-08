@@ -12,50 +12,50 @@ import java.util.Date;
 
 public class CertificateExceptionDetail {
 
-    private Type type;
+    private EType type;
     private X509Certificate[] chain;
 
-    private CertificateExceptionDetail(Type type, X509Certificate[] chain) {
-        this.type = type;
-        this.chain = chain;
+    private CertificateExceptionDetail(EType pType, X509Certificate[] pChain) {
+        this.type = pType;
+        this.chain = pChain;
     }
 
-    public static String createTrustDetail(CertificateException pCertificateException, String pSimpleInfo, X509Certificate[] chain) throws CertificateException {
+    public static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
         CertificateExceptionDetail trustDetail;
         String errorCode;
         String certMessage = pCertificateException.getMessage();
 
         // compareTo() return value less than 0 if this Date is before the Date argument
         //what if time on computer is changed?
-        if (chain[0].getNotAfter().compareTo(new Date()) < 0) {
+        if (pChain[0].getNotAfter().compareTo(new Date()) < 0) {
             //default timezone would be "CEST"
             //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-            trustDetail = new CertificateExceptionDetail(Type.EXPIRED, chain);
+            trustDetail = new CertificateExceptionDetail(EType.EXPIRED, pChain);
             errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
 
-        }else if (checkIsSelfSigned(chain[0])) {
-            trustDetail = new CertificateExceptionDetail(Type.SELF_SIGNED, chain);
+        }else if (_checkIsSelfSigned(pChain[0])) {
+            trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
             //self signed and untrusted root have same exception message
-        } else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
-                "unable to find valid certification path to requested target").equals(certMessage) && !checkIsSelfSigned(chain[0])) {
-            trustDetail = new CertificateExceptionDetail(Type.UNTRUSTED_ROOT, chain);
+        }else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
+                "unable to find valid certification path to requested target").equals(certMessage) && !_checkIsSelfSigned(pChain[0])) {
+            trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
-        } else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
-            trustDetail = new CertificateExceptionDetail(Type.BAD_HOST, chain);
+        }else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
+            trustDetail = new CertificateExceptionDetail(EType.BAD_HOST, pChain);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
         }else {
-            trustDetail = new CertificateExceptionDetail(Type.UNKNOWN, chain);
-            errorCode = "SSL_ERROR_UNKNOWN_CERT_ERROR";
+            trustDetail = new CertificateExceptionDetail(EType.UNKNOWN, pChain);
+            errorCode = "UNKNOWN_CERT_ERROR";
 
         }
-        return trustDetail.makeErrorMessage(pSimpleInfo, errorCode);
+        return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
 
-    private String makeErrorMessage(String pServer, String pErrorCode) {
+    private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
 
         String message = "Dem Sicherheitszertifikat dieser Verbindung wird von ihrem PC nicht vertraut.\n\n";
         switch (this.type) {
@@ -84,11 +84,11 @@ public class CertificateExceptionDetail {
                 break;
 
             default: //UNKNOWN
-                message += "Platzhalter für Unbekannte Exception";
+                message += "Dem Zertifikat wird aus noch unbekannten Gründen nicht vertraut.";
                 break;
         }
         message += "\n\nFehlercode:\t" + pErrorCode + "\n" +
-                "Server:\t" + pServer + "\n\n" +
+                "Server:\t" + pSimpleInfo + "\n\n" +
                 "Sie können eigenverantwortlich dieser Verbindung vertrauen oder den Vorgang abbrechen.\n";
         return message;
     }
@@ -97,25 +97,24 @@ public class CertificateExceptionDetail {
     http://www.nakov.com/blog/2009/12/01/x509-certificate-validation-in-java-build-and-verify-chain-and-verify-clr-with-bouncy-castle/
     line 99 ff
      */
-    private static boolean checkIsSelfSigned(X509Certificate cert)
+    private static boolean _checkIsSelfSigned(X509Certificate pCert)
             throws CertificateException {
         try {
             // Try to verify certificate signature with its own public key
-            cert.verify(cert.getPublicKey());
+            pCert.verify(pCert.getPublicKey());
             return true;
 
         } catch (SignatureException | InvalidKeyException exc) {
-            // Invalid signature --> not self-signed
+            // Invalid signature or key --> not self-signed
             return false;
 
         } catch (NoSuchProviderException | NoSuchAlgorithmException exc) {
-            //Exceptions not for checking selfsigned. Maybe throw
             exc.printStackTrace();
             return true;
         }
     }
 
-    enum Type {
+    enum EType {
         EXPIRED,
         BAD_HOST,
         SELF_SIGNED,

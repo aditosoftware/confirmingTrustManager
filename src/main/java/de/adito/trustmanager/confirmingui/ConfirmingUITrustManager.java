@@ -27,20 +27,21 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
     return sslContext;
   }
 
-  protected boolean checkCertificateAndShouldPersist(X509Certificate[] chain, CertificateException e, String pSimpleInfo)
+  protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pCertExc, String pSimpleInfo)
           throws CertificateException {
 
-    DetailMessageFrame detailMessageFrame = new DetailMessageFrame(pSimpleInfo, e, chain);
-    detailMessageFrame.setVisible(true);
-    int r = detailMessageFrame.getChoice();
+    String detailMessage = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
+    CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(detailMessage);
+    certExceptionDialog.setVisible(true);
 
+    int r = certExceptionDialog.getChoice();  //returns selected button as int
     switch (r){    // Will decide to trust or not trust the certificate
       case 0:       //trust once
         return false;
       case 1:       //add exception
         return true;
       default:
-        throw e;  //cancel
+        throw pCertExc;  //cancel
     }
   }
 }

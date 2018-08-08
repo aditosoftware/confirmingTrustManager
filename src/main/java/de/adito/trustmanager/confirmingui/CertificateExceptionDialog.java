@@ -3,34 +3,28 @@ package de.adito.trustmanager.confirmingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
-public class DetailMessageFrame extends JDialog implements ActionListener {
+public class CertificateExceptionDialog extends JDialog {
 
     private JPanel mainPanel;
     private JButton extendDialog;
-    private JButton cancel;
     private JButton trust;
     private JButton trustOnce;
     private JPanel extendedMainPanel;
-    private boolean isExtended;
 
+    private boolean isExtended;
     private int choice;
     private String detailMsg;
-    private CertificateException certExc;
 
-    public DetailMessageFrame(String pServer, CertificateException certExc, X509Certificate[] chain) throws CertificateException {
+    public CertificateExceptionDialog(String pDetailMessage){
         super((Frame)null, true);
         this.choice = -1;
         this.isExtended = false;
-        this.certExc = certExc;
-        detailMsg = CertificateExceptionDetail.createTrustDetail(certExc, pServer, chain);
-        showFirstDialog();
+        this.detailMsg = pDetailMessage;
+        _createFirstDialog();
     }
 
-    private void showFirstDialog() {
+    private void _createFirstDialog() {
         String msg = "Es liegt ein Problem mit dem Sicherheitszertifikat der Verbindung vor.\n\n" +
                 "Das Zertifikat konnte nicht verifiziert werden.\n\n" +
                 "Sie können den Vorgang abbrechen, oder in den erweiterten Einstellungen bearbeiten.";
@@ -55,9 +49,9 @@ public class DetailMessageFrame extends JDialog implements ActionListener {
         constraintText.anchor = GridBagConstraints.CENTER;
 
         extendDialog = new JButton("Erweitern");
-        cancel = new JButton("Abbrechen");
-        extendDialog.addActionListener(this);
-        cancel.addActionListener(this);
+        JButton cancel = new JButton("Abbrechen");
+        extendDialog.addActionListener(pEvent -> _interpretClickedButton(pEvent));
+        cancel.addActionListener(pEvent -> _interpretClickedButton(pEvent));
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(extendDialog);
@@ -78,7 +72,7 @@ public class DetailMessageFrame extends JDialog implements ActionListener {
         setLocationRelativeTo(null);
     }
 
-    private void _extendedDialog() {
+    private void _createExtendedDialog() {
         //Text Handling
         JTextArea extendedDialog = new JTextArea(detailMsg);
         extendedDialog.setEditable(false);
@@ -96,8 +90,8 @@ public class DetailMessageFrame extends JDialog implements ActionListener {
         //Button Handling
         trust = new JButton("Ausnahme hinzufügen");
         trustOnce = new JButton("Einmalig vertrauen");
-        trust.addActionListener(this);
-        trustOnce.addActionListener(this);
+        trust.addActionListener(pEvent -> _interpretClickedButton(pEvent));
+        trustOnce.addActionListener(pEvent -> _interpretClickedButton(pEvent));
 
         JPanel buttonPanel2 = new JPanel();
         buttonPanel2.add(trust);
@@ -127,7 +121,7 @@ public class DetailMessageFrame extends JDialog implements ActionListener {
 
     }
 
-    private void _unextendDialog() {
+    private void _hideExtendedDialog() {
         mainPanel.remove(extendedMainPanel);
         pack();
         validate();
@@ -135,28 +129,27 @@ public class DetailMessageFrame extends JDialog implements ActionListener {
 
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
+    private void _interpretClickedButton(ActionEvent pEvent) {
 
-        if (e.getSource() == extendDialog) {
+        if (pEvent.getSource() == extendDialog) {
             if (!isExtended) {
                 isExtended = true;
-                _extendedDialog();
+                _createExtendedDialog();
             } else {
                 isExtended = false;
-                _unextendDialog();
+                _hideExtendedDialog();
             }
 
-        } else if (e.getSource() == trustOnce) {
+        } else if (pEvent.getSource() == trustOnce) {
             choice = 0;
             this.dispose();
 
-        } else if (e.getSource() == trust) {
+        } else if (pEvent.getSource() == trust) {
             choice = 1;
             this.dispose();
 
         } else { //cancel
-            choice = 3;
+            choice = 2;
             this.dispose();
 
         }
