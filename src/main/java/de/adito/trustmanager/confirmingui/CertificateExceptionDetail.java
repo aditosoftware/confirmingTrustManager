@@ -8,6 +8,7 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CertificateExceptionDetail {
@@ -61,13 +62,13 @@ public class CertificateExceptionDetail {
         switch (this.type) {
             case EXPIRED:
                 //new Date() returns current time
-                message += "Das Zertifikat ist am " + this.chain[0].getNotAfter() + " abgelaufen. Die aktuelle Zeit ist \n" + new Date();
+                message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date());
                 break;
 
             case BAD_HOST:
                 message += "Das Zertifikat gilt nur für folgende Namen:\n";
                 try {
-                    message += chain[0].getSubjectAlternativeNames();
+                    message += this.chain[0].getSubjectAlternativeNames();
                 } catch (CertificateParsingException e) {
                     e.printStackTrace();
                 }
@@ -113,6 +114,13 @@ public class CertificateExceptionDetail {
             return true;
         }
     }
+
+    private String _formatDate(Date pDate){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd. MMM yyyy, hh:mm:ss");
+        return dateFormat.format(pDate);
+    }
+
+
 
     enum EType {
         EXPIRED,
