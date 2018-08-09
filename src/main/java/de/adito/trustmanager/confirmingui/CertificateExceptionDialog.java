@@ -13,12 +13,12 @@ public class CertificateExceptionDialog extends JDialog {
     private JPanel extendedMainPanel;
 
     private boolean isExtended;
-    private int choice;
+    private int buttonChoice;
     private String detailMsg;
 
     public CertificateExceptionDialog(String pDetailMessage){
         super((Frame)null, true);
-        this.choice = -1;
+        this.buttonChoice = -1;
         this.isExtended = false;
         this.detailMsg = pDetailMessage;
         _createFirstDialog();
@@ -68,6 +68,7 @@ public class CertificateExceptionDialog extends JDialog {
         //uncomment after finishing debugging
         //setAlwaysOnTop(true);
         setResizable(false);
+        setMinimumSize(new Dimension(500, 140));
         pack();
         setLocationRelativeTo(null);
     }
@@ -101,7 +102,7 @@ public class CertificateExceptionDialog extends JDialog {
         button2.gridy = 1;
         button2.anchor = GridBagConstraints.LAST_LINE_END;
 
-        //put components together and set positioning in relative to first dialog
+        //put components together and set positioning
         extendedMainPanel = new JPanel(new GridBagLayout());
         extendedMainPanel.add(scrollPane, textConstraints);
         extendedMainPanel.add(buttonPanel2, button2);
@@ -141,21 +142,21 @@ public class CertificateExceptionDialog extends JDialog {
             }
 
         } else if (pEvent.getSource() == trustOnce) {
-            choice = 0;
+            buttonChoice = 0;
             this.dispose();
 
         } else if (pEvent.getSource() == trust) {
-            choice = 1;
+            buttonChoice = 1;
             this.dispose();
 
         } else { //cancel
-            choice = 2;
+            buttonChoice = 2;
             this.dispose();
 
         }
     }
 
-    public int getChoice() {
-        return choice;
+    public int getButtonChoice() {
+        return buttonChoice;
     }
 }

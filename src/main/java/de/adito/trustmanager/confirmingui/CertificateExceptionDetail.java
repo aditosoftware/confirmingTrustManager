@@ -1,6 +1,5 @@
 package de.adito.trustmanager.confirmingui;
 
-
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -9,7 +8,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 public class CertificateExceptionDetail {
 
@@ -26,6 +25,7 @@ public class CertificateExceptionDetail {
         String errorCode;
         String certMessage = pCertificateException.getMessage();
 
+
         // compareTo() return value less than 0 if this Date is before the Date argument
         //what if time on computer is changed?
         if (pChain[0].getNotAfter().compareTo(new Date()) < 0) {
@@ -38,7 +38,7 @@ public class CertificateExceptionDetail {
             trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
-            //self signed and untrusted root have same exception message
+            //self-signed and untrusted root have same exception message
         } else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
                 "unable to find valid certification path to requested target").equals(certMessage) && !_checkIsSelfSigned(pChain[0])) {
             trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
@@ -59,7 +59,7 @@ public class CertificateExceptionDetail {
     private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
 
         String message = "Dem Sicherheitszertifikat dieser Verbindung wird von ihrem PC nicht vertraut.\n\n";
-        switch (this.type) {
+        switch (type) {
             case EXPIRED:
                 //new Date() returns current time
                 message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date());
@@ -67,11 +67,7 @@ public class CertificateExceptionDetail {
 
             case BAD_HOST:
                 message += "Das Zertifikat gilt nur für folgende Namen:\n";
-                try {
-                    message += this.chain[0].getSubjectAlternativeNames();
-                } catch (CertificateParsingException e) {
-                    e.printStackTrace();
-                }
+                message += _getSubjectAlternativeNames();
                 break;
 
             case SELF_SIGNED:
@@ -85,7 +81,7 @@ public class CertificateExceptionDetail {
                 break;
 
             default: //UNKNOWN
-                message += "Dem Zertifikat wird aus noch unbekannten Gründen nicht vertraut.";
+                message += "Dem Zertifikat wird aus unbekannten Gründen nicht vertraut.";
                 break;
         }
         message += "\n\nFehlercode:\t" + pErrorCode + "\n" +
@@ -94,23 +90,23 @@ public class CertificateExceptionDetail {
         return message;
     }
 
-    /*Compare for further information:
+    /*Compare to:
     http://www.nakov.com/blog/2009/12/01/x509-certificate-validation-in-java-build-and-verify-chain-and-verify-clr-with-bouncy-castle/
     line 99 ff
      */
     private static boolean _checkIsSelfSigned(X509Certificate pCert)
             throws CertificateException {
         try {
-            // Try to verify certificate signature with its own public key
+            // Try to verify certificate signature with its own public key -> is self-signed
             pCert.verify(pCert.getPublicKey());
             return true;
 
         } catch (SignatureException | InvalidKeyException exc) {
-            // Invalid signature or key --> not self-signed
+            // Invalid signature or key -> not self-signed
             return false;
 
         } catch (NoSuchProviderException | NoSuchAlgorithmException exc) {
-            exc.printStackTrace();
+            //not able to tell if cert is sef-signed; exception might be displayed as unknown
             return true;
         }
     }
@@ -146,8 +142,6 @@ public class CertificateExceptionDetail {
 
         return names;
     }
-
-
 
     enum EType {
         EXPIRED,

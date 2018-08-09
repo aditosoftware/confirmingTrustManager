@@ -34,7 +34,7 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
     CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(detailMessage);
     certExceptionDialog.setVisible(true);
 
-    int r = certExceptionDialog.getChoice();  //returns selected button as int
+    int r = certExceptionDialog.getButtonChoice();  //returns selected button as int
     switch (r){    // Will decide to trust or not trust the certificate
       case 0:       //trust once
         return false;
