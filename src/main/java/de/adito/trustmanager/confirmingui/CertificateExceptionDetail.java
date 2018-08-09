@@ -120,6 +120,35 @@ public class CertificateExceptionDetail {
         return dateFormat.format(pDate);
     }
 
+    private List<String> _getSubjectAlternativeNames(int type){
+        List<String> result = new ArrayList<>();
+        try {
+            Collection<?> subjectAltNames = chain[0].getSubjectAlternativeNames();
+            if (subjectAltNames == null) {
+                return Collections.emptyList();
+            }
+            for (Object subjectAltName : subjectAltNames) {
+                List<?> entry = (List<?>) subjectAltName;
+                if (entry == null || entry.size() < 2) {
+                    continue;
+                }
+                Integer altNameType = (Integer) entry.get(0);
+                if (altNameType == null) {
+                    continue;
+                }
+                if (altNameType == type) {
+                    String altName = (String) entry.get(1);
+                    if (altName != null) {
+                        result.add(altName);
+                    }
+                }
+            }
+            return result;
+        } catch (CertificateParsingException e) {
+            return Collections.emptyList();
+        }
+    }
+
 
 
     enum EType {
