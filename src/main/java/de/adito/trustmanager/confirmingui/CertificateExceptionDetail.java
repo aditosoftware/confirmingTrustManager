@@ -34,21 +34,21 @@ public class CertificateExceptionDetail {
             trustDetail = new CertificateExceptionDetail(EType.EXPIRED, pChain);
             errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
 
-        }else if (_checkIsSelfSigned(pChain[0])) {
+        } else if (_checkIsSelfSigned(pChain[0])) {
             trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
             //self signed and untrusted root have same exception message
-        }else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
+        } else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
                 "unable to find valid certification path to requested target").equals(certMessage) && !_checkIsSelfSigned(pChain[0])) {
             trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
-        }else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
+        } else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
             trustDetail = new CertificateExceptionDetail(EType.BAD_HOST, pChain);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
-        }else {
+        } else {
             trustDetail = new CertificateExceptionDetail(EType.UNKNOWN, pChain);
             errorCode = "UNKNOWN_CERT_ERROR";
 
@@ -115,38 +115,36 @@ public class CertificateExceptionDetail {
         }
     }
 
-    private String _formatDate(Date pDate){
+    private String _formatDate(Date pDate) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd. MMM yyyy, hh:mm:ss");
         return dateFormat.format(pDate);
     }
 
-    private List<String> _getSubjectAlternativeNames(int type){
-        List<String> result = new ArrayList<>();
+    /*compare to:
+    http://www.javadocexamples.com/java_source/net/sf/jguard/ext/authentication/loginmodules/CertificateLoginModule.java.html
+    line 118 ff
+    */
+    private String _getSubjectAlternativeNames() {
+        Collection altNames;
         try {
-            Collection<?> subjectAltNames = chain[0].getSubjectAlternativeNames();
-            if (subjectAltNames == null) {
-                return Collections.emptyList();
-            }
-            for (Object subjectAltName : subjectAltNames) {
-                List<?> entry = (List<?>) subjectAltName;
-                if (entry == null || entry.size() < 2) {
-                    continue;
-                }
-                Integer altNameType = (Integer) entry.get(0);
-                if (altNameType == null) {
-                    continue;
-                }
-                if (altNameType == type) {
-                    String altName = (String) entry.get(1);
-                    if (altName != null) {
-                        result.add(altName);
-                    }
-                }
-            }
-            return result;
+            altNames = chain[0].getSubjectAlternativeNames();
         } catch (CertificateParsingException e) {
-            return Collections.emptyList();
+            return "";
         }
+
+        Iterator itAltNames = altNames.iterator();
+        String names = "";
+        while (itAltNames.hasNext()) {
+            List extensionEntry = (List) itAltNames.next();
+            //Integer nameType = (Integer) extensionEntry.get(0);
+            names += (String) extensionEntry.get(1);
+
+            if(itAltNames.hasNext()){
+                names += ", ";
+            }
+        }
+
+        return names;
     }
 
 
