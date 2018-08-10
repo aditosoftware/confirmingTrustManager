@@ -1,8 +1,6 @@
 package de.adito.trustmanager.confirmingui;
 
 import sun.security.validator.ValidatorException;
-
-import javax.net.ssl.SSLHandshakeException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -27,10 +25,6 @@ public class CertificateExceptionDetail {
         CertificateExceptionDetail trustDetail;
         String errorCode;
         String certMessage = pCertificateException.getMessage();
-
-        for(X509Certificate cert: pChain) {
-            System.out.println(cert.getBasicConstraints());
-        }
 
         if (_checkIsSelfSigned(pChain[0])) {
             trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
