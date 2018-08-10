@@ -1,5 +1,8 @@
 package de.adito.trustmanager.confirmingui;
 
+import sun.security.validator.ValidatorException;
+
+import javax.net.ssl.SSLHandshakeException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -25,22 +28,25 @@ public class CertificateExceptionDetail {
         String errorCode;
         String certMessage = pCertificateException.getMessage();
 
+        for(X509Certificate cert: pChain) {
+            System.out.println(cert.getBasicConstraints());
+        }
 
-        // compareTo() return value less than 0 if this Date is before the Date argument
-        //what if time on computer is changed?
-        if (pChain[0].getNotAfter().compareTo(new Date()) < 0) {
+        if (_checkIsSelfSigned(pChain[0])) {
+            trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
+            errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
+
+        } else if (pChain[0].getNotAfter().compareTo(new Date()) < 0) {
+            // compareTo() return value less than 0 if this Date is before the Date argument
+            //what if time on computer is changed?
             //default timezone would be "CEST"
             //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
             trustDetail = new CertificateExceptionDetail(EType.EXPIRED, pChain);
             errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
 
-        } else if (_checkIsSelfSigned(pChain[0])) {
-            trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
-            errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
-
-            //self-signed and untrusted root have same exception message
-        } else if (("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: " +
-                "unable to find valid certification path to requested target").equals(certMessage) && !_checkIsSelfSigned(pChain[0])) {
+            //self-signed and untrusted root have same exception message -> expired, selfsigned and untrusted all are
+            //instance of ValidatorException, if Exception is not one of the upper two cases it should be untrusted root
+        } else if (pCertificateException instanceof ValidatorException) {
             trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
@@ -133,6 +139,7 @@ public class CertificateExceptionDetail {
         while (itAltNames.hasNext()) {
             List extensionEntry = (List) itAltNames.next();
             //Integer nameType = (Integer) extensionEntry.get(0);
+            //nameType can be 2 or 7, while 2 is DNS and 7 is IP
             names += (String) extensionEntry.get(1);
 
             if(itAltNames.hasNext()){
