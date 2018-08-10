@@ -45,7 +45,7 @@ public class CertificateExceptionDetail {
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
         } else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
-            trustDetail = new CertificateExceptionDetail(EType.BAD_HOST, pChain);
+            trustDetail = new CertificateExceptionDetail(EType.WRONG_HOST, pChain);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
         } else {
@@ -65,7 +65,7 @@ public class CertificateExceptionDetail {
                 message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date());
                 break;
 
-            case BAD_HOST:
+            case WRONG_HOST:
                 message += "Das Zertifikat gilt nur für folgende Namen:\n";
                 message += _getSubjectAlternativeNames();
                 break;
@@ -146,7 +146,7 @@ public class CertificateExceptionDetail {
 
     enum EType {
         EXPIRED,
-        BAD_HOST,
+        WRONG_HOST,
         SELF_SIGNED,
         UNTRUSTED_ROOT,
         UNKNOWN
