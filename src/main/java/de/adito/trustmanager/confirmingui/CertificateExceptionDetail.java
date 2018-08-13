@@ -1,5 +1,7 @@
 package de.adito.trustmanager.confirmingui;
 
+import org.ietf.jgss.GSSException;
+import org.ietf.jgss.Oid;
 import sun.security.util.HostnameChecker;
 import sun.security.validator.ValidatorException;
 import java.security.InvalidKeyException;
@@ -25,14 +27,14 @@ public class CertificateExceptionDetail {
     public static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
         CertificateExceptionDetail trustDetail;
         String errorCode;
-        String certMessage = pCertificateException.getMessage();
+        // String certMessage = pCertificateException.getMessage();
 
         if (_checkIsSelfSigned(pChain[0])) {
             trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
-        } else if (pChain[0].getNotAfter().compareTo(new Date()) < 0) {
-            // compareTo() return value less than 0 if this Date is before the Date argument
+        } else if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
+            // compareTo() return value less than 0 if Date is before argument
             //what if time on computer is changed?
             //default timezone would be "CEST"
             //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
@@ -41,15 +43,15 @@ public class CertificateExceptionDetail {
 
             //expired, selfsigned and untrusted all are
             //instance of ValidatorException, if Exception is not one of the upper two cases it should be untrusted root
-        } else if (pCertificateException instanceof ValidatorException) {
+        } else if(pCertificateException instanceof ValidatorException) {
             trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
-        }else if(!CertificateExceptionDetail._checkHostname(pSimpleInfo, pChain)){
+        } else if(!_checkHostname(pSimpleInfo, pChain)){
             trustDetail = new CertificateExceptionDetail(EType.WRONG_HOST, pChain);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
-        }else {
+        } else{
             trustDetail = new CertificateExceptionDetail(EType.UNKNOWN, pChain);
             errorCode = "UNKNOWN_CERT_ERROR";
 
@@ -67,8 +69,7 @@ public class CertificateExceptionDetail {
                 break;
 
             case WRONG_HOST:
-                message += "Das Zertifikat gilt nur für folgende Namen:\n";
-                message += _getSubjectAlternativeNames();
+                message += "Das Zertifikat gilt nur für folgende Namen:\n" + _getSubjectAlternativeNames();
                 break;
 
             case SELF_SIGNED:
@@ -129,13 +130,32 @@ public class CertificateExceptionDetail {
             return "";
         }
 
+        if(altNames == null){
+            return "";
+        }
+
         Iterator itAltNames = altNames.iterator();
         String names = "";
         while (itAltNames.hasNext()) {
             List extensionEntry = (List) itAltNames.next();
-            //Integer nameType = (Integer) extensionEntry.get(0);
-            //nameType can be 2 or 7, while 2 is DNS and 7 is IP
-            names += (String) extensionEntry.get(1);
+            //nameType:  2 is DNS, 7 is IP
+            Integer nameType = (Integer) extensionEntry.get(0);
+            //if nameType is 2, extensionEntry is DNS and returned as String
+            if(nameType == 2) {
+                names += (String) extensionEntry.get(1);
+            }
+
+            //if nameType is 7, extensionEntry is IP and returned as byteArray
+            if(nameType == 7){
+                //handle byteArray with ASN.1 decoder
+                //code not yet tested
+                try {
+                    Oid oid = new Oid((byte[]) extensionEntry.get(1));
+                    names += oid.toString();
+                } catch (GSSException e) {
+
+                }
+            }
 
             if(itAltNames.hasNext()){
                 names += ", ";
@@ -147,8 +167,7 @@ public class CertificateExceptionDetail {
 
     private static boolean _checkHostname(String pHostname, X509Certificate[] pChain){
         try {
-            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(
-                    pHostname, pChain[0]);
+            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(pHostname, pChain[0]);
             return true;
         } catch (CertificateException exc){
             return false;

@@ -10,7 +10,8 @@ public class CertificateExceptionDialog extends JDialog {
     private JButton extendDialog;
     private JButton trust;
     private JButton trustOnce;
-    private JPanel extendedMainPanel;
+    private JPanel buttonPanel2;
+    private JScrollPane scrollPane;
 
     private boolean isExtended;
     private int buttonChoice;
@@ -59,6 +60,7 @@ public class CertificateExceptionDialog extends JDialog {
         GridBagConstraints constraintsButton = new GridBagConstraints();
         constraintsButton.gridx = 1;
         constraintsButton.gridy = 1;
+        constraintsButton.insets = new Insets(0, 0, 0, 2);
         constraintsButton.anchor = GridBagConstraints.LAST_LINE_END;
 
         mainPanel.add(scrollPane, constraintText);
@@ -79,11 +81,10 @@ public class CertificateExceptionDialog extends JDialog {
         extendedDialog.setEditable(false);
         extendedDialog.setOpaque(false);
 
-        JScrollPane scrollPane = new JScrollPane(extendedDialog);
+        scrollPane = new JScrollPane(extendedDialog);
         GridBagConstraints textConstraints = new GridBagConstraints();
-        textConstraints.weightx = 1.0;
         textConstraints.gridx = 0;
-        textConstraints.gridy = 0;
+        textConstraints.gridy = 2;
         textConstraints.gridwidth = 2;
         textConstraints.gridheight = 1;
         textConstraints.anchor = GridBagConstraints.CENTER;
@@ -94,27 +95,17 @@ public class CertificateExceptionDialog extends JDialog {
         trust.addActionListener(pEvent -> _interpretClickedButton(pEvent));
         trustOnce.addActionListener(pEvent -> _interpretClickedButton(pEvent));
 
-        JPanel buttonPanel2 = new JPanel();
+        buttonPanel2 = new JPanel();
         buttonPanel2.add(trust);
         buttonPanel2.add(trustOnce);
         GridBagConstraints button2 = new GridBagConstraints();
         button2.gridx = 1;
-        button2.gridy = 1;
+        button2.gridy = 3;
+        button2.insets = new Insets(0,0,0,2);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
 
-        //put components together and set positioning
-        extendedMainPanel = new JPanel(new GridBagLayout());
-        extendedMainPanel.add(scrollPane, textConstraints);
-        extendedMainPanel.add(buttonPanel2, button2);
-
-        GridBagConstraints extMainConstraints = new GridBagConstraints();
-        extMainConstraints.weightx = 1.0;
-        extMainConstraints.gridx = 0;
-        extMainConstraints.gridy = 2;
-        extMainConstraints.gridwidth = 2;
-        extMainConstraints.gridheight = 1;
-        extMainConstraints.anchor = GridBagConstraints.CENTER;
-        mainPanel.add(extendedMainPanel, extMainConstraints);
+        mainPanel.add(scrollPane, textConstraints);
+        mainPanel.add(buttonPanel2, button2);
 
         pack();
         validate();
@@ -123,7 +114,8 @@ public class CertificateExceptionDialog extends JDialog {
     }
 
     private void _hideExtendedDialog() {
-        mainPanel.remove(extendedMainPanel);
+        mainPanel.remove(scrollPane);
+        mainPanel.remove(buttonPanel2);
         pack();
         validate();
         repaint();
