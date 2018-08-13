@@ -66,7 +66,7 @@ public class CertificateExceptionDialog extends JDialog {
         add(mainPanel);
 
         //uncomment after finishing debugging
-        //setAlwaysOnTop(true);
+        setAlwaysOnTop(true);
         setResizable(false);
         setMinimumSize(new Dimension(500, 140));
         pack();

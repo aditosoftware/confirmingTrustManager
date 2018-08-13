@@ -1,5 +1,6 @@
 package de.adito.trustmanager.confirmingui;
 
+import sun.security.util.HostnameChecker;
 import sun.security.validator.ValidatorException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -38,17 +39,17 @@ public class CertificateExceptionDetail {
             trustDetail = new CertificateExceptionDetail(EType.EXPIRED, pChain);
             errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
 
-            //self-signed and untrusted root have same exception message -> expired, selfsigned and untrusted all are
+            //expired, selfsigned and untrusted all are
             //instance of ValidatorException, if Exception is not one of the upper two cases it should be untrusted root
         } else if (pCertificateException instanceof ValidatorException) {
             trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
-        } else if ((String.format("No subject alternative DNS name matching %s found.", pSimpleInfo)).equals(certMessage)) {
+        }else if(!CertificateExceptionDetail._checkHostname(pSimpleInfo, pChain)){
             trustDetail = new CertificateExceptionDetail(EType.WRONG_HOST, pChain);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
-        } else {
+        }else {
             trustDetail = new CertificateExceptionDetail(EType.UNKNOWN, pChain);
             errorCode = "UNKNOWN_CERT_ERROR";
 
@@ -142,6 +143,16 @@ public class CertificateExceptionDetail {
         }
 
         return names;
+    }
+
+    private static boolean _checkHostname(String pHostname, X509Certificate[] pChain){
+        try {
+            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(
+                    pHostname, pChain[0]);
+            return true;
+        } catch (CertificateException exc){
+            return false;
+        }
     }
 
     enum EType {
