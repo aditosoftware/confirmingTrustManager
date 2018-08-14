@@ -157,7 +157,7 @@ public class CertificateExceptionDetail {
                     Oid oid = new Oid((byte[]) extensionEntry.get(1));
                     names += oid.toString();
                 } catch (GSSException e) {
-
+                    //Do nothing. Go on to next SubAltName
                 }
             }
 

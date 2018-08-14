@@ -3,6 +3,8 @@ package de.adito.trustmanager.confirmingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 public class CertificateExceptionDialog extends JDialog {
 
@@ -62,6 +64,9 @@ public class CertificateExceptionDialog extends JDialog {
         constraintsButton.gridy = 1;
         constraintsButton.insets = new Insets(0, 0, 0, 2);
         constraintsButton.anchor = GridBagConstraints.LAST_LINE_END;
+
+        ActionListener keyAction = pressedKey -> dispose();
+        getRootPane().registerKeyboardAction(keyAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         mainPanel.add(scrollPane, constraintText);
         mainPanel.add(buttonPanel, constraintsButton);
