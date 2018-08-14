@@ -26,6 +26,9 @@ public class Test_ConfirmingUITrustManager {
             e.printStackTrace();
         }
 
+        //System.setProperty("javax.net.ssl.trustStore", "NUL");
+        //System.setProperty("javax.net.ssl.trustStoreType", "Windows-ROOT");
+
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore());
         SSLContext.setDefault(sslContext);
     }
@@ -33,13 +36,12 @@ public class Test_ConfirmingUITrustManager {
     @Test
     void test() throws IOException {
         //_read(new URL("https://expired.badssl.com/"));
-        _read(new URL("https://wrong.host.badssl.com/"));
-        //_read(new URL("https://self-signed.badssl.com"));
+        //_read(new URL("https://wrong.host.badssl.com/"));
+        _read(new URL("https://self-signed.badssl.com"));        // Certificate is now expired
         //_read(new URL("https://untrusted-root.badssl.com/"));
-        //_read(new URL("https://revoked.badssl.com/"));  // does finish without opening a window
-        //_read(new URL("https://pinning-test.badssl.com/")); // does finish without opening a window
+        //_read(new URL("https://revoked.badssl.com/"));            //needs old logic
+        //_read(new URL("https://gitintern.aditosoftware.local"));
     }
-    //PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 
     private String _read(URL pUrl) throws IOException {
         try (InputStream inputStream = pUrl.openConnection().getInputStream()) {

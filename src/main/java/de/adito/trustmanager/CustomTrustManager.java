@@ -24,30 +24,39 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
     // initialize certification path checking for the offered certificates and revocation checks against CLRs
-    CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
-    PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
-    rc.setOptions(EnumSet.of(
-        PKIXRevocationChecker.Option.PREFER_CRLS, // prefer CLR over OCSP
-        PKIXRevocationChecker.Option.ONLY_END_ENTITY,
-        PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
-        PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
+//    CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
+//    PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
+//    rc.setOptions(EnumSet.of(
+//        PKIXRevocationChecker.Option.PREFER_CRLS, // prefer CLR over OCSP
+//        PKIXRevocationChecker.Option.ONLY_END_ENTITY,
+//        PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
+//        PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
+//
+//    String keyStorePath = System.getProperty("javax.net.ssl.keyStore");
+//    if (keyStorePath == null) {
+//      String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
+//      if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
+//        keyStorePath = securityPath + "jssecacerts";
+//      else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
+//        keyStorePath = securityPath + "cacerts";
+//    }
+//    String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
+//    KeyStore ks = KeyStore.getInstance("JKS");
+//    TrustManagerUtil.loadKeyStore(ks, keyStorePassword, keyStorePath == null ? null : Paths.get(keyStorePath));
 
-    String keyStorePath = System.getProperty("javax.net.ssl.keyStore");
-    if (keyStorePath == null) {
-      String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
-      if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
-        keyStorePath = securityPath + "jssecacerts";
-      else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
-        keyStorePath = securityPath + "cacerts";
+//    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ks, new X509CertSelector());
+//    pkixParams.addCertPathChecker(rc);
+
+    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    KeyStore keyStore = KeyStore.getInstance("Windows-ROOT");
+    keyStore.load(null, null);
+    try {
+      keyManagerFactory.init(keyStore, null);
+    } catch (UnrecoverableKeyException e) {
+      e.printStackTrace();
     }
-    String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
-    KeyStore ks = KeyStore.getInstance("JKS");
-    TrustManagerUtil.loadKeyStore(ks, keyStorePassword, keyStorePath == null ? null : Paths.get(keyStorePath));
 
-    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ks, new X509CertSelector());
-    pkixParams.addCertPathChecker(rc);
-
-    tmf.init(new CertPathTrustManagerParameters(pkixParams));
+    tmf.init(keyStore);
 
     javax.net.ssl.TrustManager[] tm = tmf.getTrustManagers();
     if (tm.length == 0)

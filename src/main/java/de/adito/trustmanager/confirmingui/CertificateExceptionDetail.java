@@ -16,77 +16,81 @@ import java.util.*;
 
 public class CertificateExceptionDetail {
 
-    private EType type;
+    private ArrayList<EType> typeArray;
     private X509Certificate[] chain;
 
-    private CertificateExceptionDetail(EType pType, X509Certificate[] pChain) {
-        this.type = pType;
+    private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain) {
+        this.typeArray = pType;
         this.chain = pChain;
     }
 
     public static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
         CertificateExceptionDetail trustDetail;
-        String errorCode;
-        // String certMessage = pCertificateException.getMessage();
+        String errorCode = "";
+        ArrayList<EType> typeArray = new ArrayList<>();
 
-        if (_checkIsSelfSigned(pChain[0])) {
-            trustDetail = new CertificateExceptionDetail(EType.SELF_SIGNED, pChain);
-            errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
-
-        } else if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
+        if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
             // compareTo() return value less than 0 if Date is before argument
-            //what if time on computer is changed?
-            //default timezone would be "CEST"
-            //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-            trustDetail = new CertificateExceptionDetail(EType.EXPIRED, pChain);
+            typeArray.add(EType.EXPIRED);
             errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
+        }
+        if (_checkIsSelfSigned(pChain[0])) {
+            typeArray.add(EType.SELF_SIGNED);
+            errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
             //expired, selfsigned and untrusted all are
             //instance of ValidatorException, if Exception is not one of the upper two cases it should be untrusted root
-        } else if(pCertificateException instanceof ValidatorException) {
-            trustDetail = new CertificateExceptionDetail(EType.UNTRUSTED_ROOT, pChain);
+
+            //due to exclusion process, untrusted root cannot be identified as expired && untrusted at the same time -> find work around
+        } else if(pCertificateException instanceof ValidatorException && typeArray.isEmpty()) {
+            typeArray.add(EType.UNTRUSTED_ROOT);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
         } else if(!_checkHostname(pSimpleInfo, pChain)){
-            trustDetail = new CertificateExceptionDetail(EType.WRONG_HOST, pChain);
+            typeArray.add(EType.WRONG_HOST);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
         } else{
-            trustDetail = new CertificateExceptionDetail(EType.UNKNOWN, pChain);
-            errorCode = "UNKNOWN_CERT_ERROR";
-
+            if(typeArray.isEmpty()) {
+                typeArray.add(EType.UNKNOWN);
+                errorCode = "UNKNOWN_CERT_ERROR";
+            }
         }
+        trustDetail = new CertificateExceptionDetail(typeArray, pChain);
         return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
 
     private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
 
         String message = "Dem Sicherheitszertifikat dieser Verbindung wird von ihrem PC nicht vertraut.\n\n";
-        switch (type) {
-            case EXPIRED:
-                //new Date() returns current time
-                message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date());
-                break;
 
-            case WRONG_HOST:
-                message += "Das Zertifikat gilt nur für folgende Namen:\n" + _getSubjectAlternativeNames();
-                break;
+        for(EType type : typeArray) {
+            switch (type) {
+                case EXPIRED:
+                    //new Date() returns current time
+                    message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date()) + ".\n";
+                    break;
 
-            case SELF_SIGNED:
-                message += "Dem Zertifikat wird nicht vertraut, weil es vom Aussteller selbst signiert wurde.";
-                break;
+                case WRONG_HOST:
+                    message += "Das Zertifikat gilt nur für folgende Namen:\n" + _getSubjectAlternativeNames() + "\n";
+                    break;
 
-            case UNTRUSTED_ROOT:
-                message += "Dem Zertifikat wird nicht vertraut, weil das Aussteller-Zertifikat unbekannt ist.\n" +
-                        "Der Server sendet eventuell nicht die richtigen Zwischen-Zertifikate.\n" +
-                        "Eventuell muss ein zusätzliches Stammzertifikat importiert werden.";
-                break;
+                case SELF_SIGNED:
+                    message += "Dem Zertifikat wird nicht vertraut, weil es vom Aussteller selbst signiert wurde.\n";
+                    break;
 
-            default: //UNKNOWN
-                message += "Dem Zertifikat wird aus unbekannten Gründen nicht vertraut.";
-                break;
+                case UNTRUSTED_ROOT:
+                    message += "Dem Zertifikat wird nicht vertraut, weil das Aussteller-Zertifikat unbekannt ist.\n" +
+                            "Der Server sendet eventuell nicht die richtigen Zwischen-Zertifikate.\n" +
+                            "Eventuell muss ein zusätzliches Stammzertifikat importiert werden.\n";
+                    break;
+
+                default: //UNKNOWN
+                    message += "Dem Zertifikat wird aus unbekannten Gründen nicht vertraut.\n";
+                    break;
+            }
         }
-        message += "\n\nFehlercode:\t" + pErrorCode + "\n" +
+        message += "\nFehlercode:\t" + pErrorCode + "\n" +
                 "Server:\t" + pSimpleInfo + "\n\n" +
                 "Sie können eigenverantwortlich dieser Verbindung vertrauen oder den Vorgang abbrechen.\n";
         return message;
