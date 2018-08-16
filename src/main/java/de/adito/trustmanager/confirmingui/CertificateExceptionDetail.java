@@ -3,7 +3,6 @@ package de.adito.trustmanager.confirmingui;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 import sun.security.util.HostnameChecker;
-import sun.security.validator.ValidatorException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -29,11 +28,7 @@ public class CertificateExceptionDetail {
         String errorCode = "";
         ArrayList<EType> typeArray = new ArrayList<>();
 
-        if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
-            // compareTo() return value less than 0 if Date is before argument
-            typeArray.add(EType.EXPIRED);
-            errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
-        }
+
         if (_checkIsSelfSigned(pChain[0])) {
             typeArray.add(EType.SELF_SIGNED);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
@@ -42,7 +37,7 @@ public class CertificateExceptionDetail {
             //instance of ValidatorException, if Exception is not one of the upper two cases it should be untrusted root
 
             //due to exclusion process, untrusted root cannot be identified as expired && untrusted at the same time -> find work around
-        } else if(pCertificateException instanceof ValidatorException && typeArray.isEmpty()) {
+        } else if(pCertificateException.getMessage().contains("PKIX path building failed") && !_checkIsSelfSigned(pChain[0])) {
             typeArray.add(EType.UNTRUSTED_ROOT);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
@@ -50,12 +45,18 @@ public class CertificateExceptionDetail {
             typeArray.add(EType.WRONG_HOST);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
-        } else{
-            if(typeArray.isEmpty()) {
+        } else if(pChain[0].getNotAfter().compareTo(new Date()) > 0){
                 typeArray.add(EType.UNKNOWN);
                 errorCode = "UNKNOWN_CERT_ERROR";
-            }
+
         }
+
+        if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
+            // compareTo() return value less than 0 if Date is before argument
+            typeArray.add(EType.EXPIRED);
+            errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
+        }
+
         trustDetail = new CertificateExceptionDetail(typeArray, pChain);
         return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
