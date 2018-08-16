@@ -53,8 +53,10 @@ public class CertificateExceptionDetail {
 
         if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
             // compareTo() return value less than 0 if Date is before argument
+            if(typeArray.isEmpty()){
+                errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
+            }
             typeArray.add(EType.EXPIRED);
-            errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
         }
 
         trustDetail = new CertificateExceptionDetail(typeArray, pChain);
