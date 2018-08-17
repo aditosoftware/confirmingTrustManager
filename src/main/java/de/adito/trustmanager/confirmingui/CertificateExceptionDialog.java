@@ -2,18 +2,14 @@ package de.adito.trustmanager.confirmingui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 public class CertificateExceptionDialog extends JDialog {
 
     private JPanel mainPanel;
-    private JButton extendDialog;
-    private JButton trust;
-    private JButton trustOnce;
-    private JPanel buttonPanel2;
-    private JScrollPane scrollPane;
+    private JPanel extButtonPanel;
+    private JScrollPane extScrollPane;
 
     private boolean isExtended;
     private int buttonChoice;
@@ -51,14 +47,26 @@ public class CertificateExceptionDialog extends JDialog {
         constraintText.gridheight = 1;
         constraintText.anchor = GridBagConstraints.CENTER;
 
-        extendDialog = new JButton("Erweitern");
+        JButton extendDialog = new JButton("Erweitern");
         JButton cancel = new JButton("Abbrechen");
-        extendDialog.addActionListener(pEvent -> _interpretClickedButton(pEvent));
-        cancel.addActionListener(pEvent -> _interpretClickedButton(pEvent));
+        cancel.addActionListener(pEvent -> {
+            buttonChoice = 2;
+            dispose();
+        });
+        extendDialog.addActionListener(pEvent -> {
+            if (!isExtended) {
+                isExtended = true;
+                _createExtendedDialog();
+            } else {
+                isExtended = false;
+                _hideExtendedDialog();
+            }
+        });
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(extendDialog);
         buttonPanel.add(cancel);
+
         GridBagConstraints constraintsButton = new GridBagConstraints();
         constraintsButton.gridx = 1;
         constraintsButton.gridy = 1;
@@ -72,7 +80,6 @@ public class CertificateExceptionDialog extends JDialog {
         mainPanel.add(buttonPanel, constraintsButton);
         add(mainPanel);
 
-        //uncomment after finishing debugging
         setAlwaysOnTop(true);
         setResizable(false);
         setMinimumSize(new Dimension(500, 140));
@@ -86,7 +93,7 @@ public class CertificateExceptionDialog extends JDialog {
         extendedDialog.setEditable(false);
         extendedDialog.setOpaque(false);
 
-        scrollPane = new JScrollPane(extendedDialog);
+        extScrollPane = new JScrollPane(extendedDialog);
         GridBagConstraints textConstraints = new GridBagConstraints();
         textConstraints.gridx = 0;
         textConstraints.gridy = 2;
@@ -95,22 +102,29 @@ public class CertificateExceptionDialog extends JDialog {
         textConstraints.anchor = GridBagConstraints.CENTER;
 
         //Button Handling
-        trust = new JButton("Ausnahme hinzufügen");
-        trustOnce = new JButton("Einmalig vertrauen");
-        trust.addActionListener(pEvent -> _interpretClickedButton(pEvent));
-        trustOnce.addActionListener(pEvent -> _interpretClickedButton(pEvent));
+        JButton trust = new JButton("Ausnahme hinzufügen");
+        JButton trustOnce = new JButton("Einmalig vertrauen");
+        trust.addActionListener(pEvent -> {
+            buttonChoice = 1;
+            dispose();
+        });
+        trustOnce.addActionListener(pEvent ->{
+            buttonChoice = 0;
+            dispose();
+        });
 
-        buttonPanel2 = new JPanel();
-        buttonPanel2.add(trust);
-        buttonPanel2.add(trustOnce);
+        extButtonPanel = new JPanel();
+        extButtonPanel.add(trust);
+        extButtonPanel.add(trustOnce);
+
         GridBagConstraints button2 = new GridBagConstraints();
         button2.gridx = 1;
         button2.gridy = 3;
         button2.insets = new Insets(0,0,0,2);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
 
-        mainPanel.add(scrollPane, textConstraints);
-        mainPanel.add(buttonPanel2, button2);
+        mainPanel.add(extScrollPane, textConstraints);
+        mainPanel.add(extButtonPanel, button2);
 
         pack();
         validate();
@@ -119,38 +133,12 @@ public class CertificateExceptionDialog extends JDialog {
     }
 
     private void _hideExtendedDialog() {
-        mainPanel.remove(scrollPane);
-        mainPanel.remove(buttonPanel2);
+        mainPanel.remove(extScrollPane);
+        mainPanel.remove(extButtonPanel);
         pack();
         validate();
         repaint();
 
-    }
-
-    private void _interpretClickedButton(ActionEvent pEvent) {
-
-        if (pEvent.getSource() == extendDialog) {
-            if (!isExtended) {
-                isExtended = true;
-                _createExtendedDialog();
-            } else {
-                isExtended = false;
-                _hideExtendedDialog();
-            }
-
-        } else if (pEvent.getSource() == trustOnce) {
-            buttonChoice = 0;
-            this.dispose();
-
-        } else if (pEvent.getSource() == trust) {
-            buttonChoice = 1;
-            this.dispose();
-
-        } else { //cancel
-            buttonChoice = 2;
-            this.dispose();
-
-        }
     }
 
     public int getButtonChoice() {

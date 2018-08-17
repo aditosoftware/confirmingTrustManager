@@ -4,9 +4,7 @@ package de.adito.trustmanager.confirmingui;
 import de.adito.trustmanager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.*;
@@ -23,15 +21,6 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
   public static SSLContext createSslContext(ICustomTrustStore pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
       NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
   {
-    /*KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    KeyStore keyStore = KeyStore.getInstance("Windows-MY");
-    keyStore.load(null, null);
-    try {
-      keyManagerFactory.init(keyStore, null);
-    } catch (UnrecoverableKeyException e) {
-      e.printStackTrace();
-    }*/
-
     SSLContext sslContext = SSLContext.getInstance("TLS");
     CustomTrustManager trustManager = new ConfirmingUITrustManager(pTrustStore);
     sslContext.init(null, new CustomTrustManager[]{trustManager}, new SecureRandom());
