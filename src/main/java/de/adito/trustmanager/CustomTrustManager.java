@@ -8,44 +8,24 @@ import java.net.Socket;
 import java.nio.file.*;
 import java.security.*;
 import java.security.cert.*;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
-  private final X509ExtendedTrustManager defaultTrustManager;
+  private final List<X509ExtendedTrustManager> defaultTrustManagers;
   private ICustomTrustStore trustStore;
-
+  private boolean certAccepted;
 
   public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
-      CertificateException, InvalidAlgorithmParameterException
-  {
+          CertificateException, InvalidAlgorithmParameterException {
+    certAccepted = false;
+    defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
 
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-
-    // initialize certification path checking for the offered certificates and revocation checks against CLRs
-//    CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
-//    PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
-//    rc.setOptions(EnumSet.of(
-//        PKIXRevocationChecker.Option.PREFER_CRLS, // prefer CLR over OCSP
-//        PKIXRevocationChecker.Option.ONLY_END_ENTITY,
-//        PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
-//        PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
-//
-//    String keyStorePath = System.getProperty("javax.net.ssl.keyStore");
-//    if (keyStorePath == null) {
-//      String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
-//      if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
-//        keyStorePath = securityPath + "jssecacerts";
-//      else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
-//        keyStorePath = securityPath + "cacerts";
-//    }
-//    String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
-//    KeyStore ks = KeyStore.getInstance("JKS");
-//    TrustManagerUtil.loadKeyStore(ks, keyStorePassword, keyStorePath == null ? null : Paths.get(keyStorePath));
-
-//    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ks, new X509CertSelector());
-//    pkixParams.addCertPathChecker(rc);
 
     KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
     KeyStore keyStore = KeyStore.getInstance("Windows-ROOT");
@@ -61,12 +41,52 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     javax.net.ssl.TrustManager[] tm = tmf.getTrustManagers();
     if (tm.length == 0)
       throw new IllegalStateException("No trust managers found");
-    defaultTrustManager = (X509ExtendedTrustManager) tm[0];
+    defaultTrustManagers.add((X509ExtendedTrustManager) tm[0]);
+
+    //trustStore = pTrustStore;
+
+    TrustManagerFactory tmf1 = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+    // initialize certification path checking for the offered certificates and revocation checks against CLRs
+    CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
+    PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
+    rc.setOptions(EnumSet.of(
+            PKIXRevocationChecker.Option.PREFER_CRLS, // prefer CLR over OCSP
+            PKIXRevocationChecker.Option.ONLY_END_ENTITY,
+            PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
+            PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
+
+    String keyStorePath = System.getProperty("javax.net.ssl.keyStore");
+    if (keyStorePath == null) {
+      String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
+      if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
+        keyStorePath = securityPath + "jssecacerts";
+      else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
+        keyStorePath = securityPath + "cacerts";
+    }
+    String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
+    KeyStore ks = KeyStore.getInstance("JKS");
+    TrustManagerUtil.loadKeyStore(ks, keyStorePassword, keyStorePath == null ? null : Paths.get(keyStorePath));
+
+    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ks, new X509CertSelector());
+    pkixParams.addCertPathChecker(rc);
+
+    tmf1.init(new CertPathTrustManagerParameters(pkixParams));
+
+    javax.net.ssl.TrustManager[] tm1 = tmf1.getTrustManagers();
+    if (tm1.length == 0)
+      throw new IllegalStateException("No trust managers found");
+    defaultTrustManagers.add((X509ExtendedTrustManager) tm1[0]);
   }
 
-  public X509Certificate[] getAcceptedIssuers()
-  {
-    return defaultTrustManager.getAcceptedIssuers();
+  public X509Certificate[] getAcceptedIssuers() {
+    List<X509Certificate> certificates = new LinkedList<>();
+    for (X509ExtendedTrustManager trustManager : defaultTrustManagers) {
+      for (X509Certificate cert : trustManager.getAcceptedIssuers()) {
+        certificates.add(cert);
+      }
+    }
+    return certificates.toArray(new X509Certificate[certificates.size()]);
   }
 
   public void checkClientTrusted(X509Certificate[] chain, String authType)
@@ -88,33 +108,40 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 
   public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
   {
-    try {
-      defaultTrustManager.checkServerTrusted(chain, authType);
-    }
-    catch (CertificateException e) {
-      _handleCertificateException(chain, e, null);
+    for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
+      try {
+        defaultTrustManager.checkServerTrusted(chain, authType);
+        certAccepted = true;
+      } catch (CertificateException e) {
+        _handleCertificateException(chain, e, null);
+      }
     }
   }
 
   @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType, Socket pSocket) throws CertificateException
   {
-    try {
-      defaultTrustManager.checkServerTrusted(chain, authType, pSocket);
-    }
-    catch (CertificateException e) {
-      _handleCertificateException(chain, e, pSocket.getInetAddress().getHostName());
+    for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
+      try {
+        defaultTrustManager.checkServerTrusted(chain, authType, pSocket);
+        certAccepted = true;
+      } catch (CertificateException e) {
+        _handleCertificateException(chain, e, pSocket.getInetAddress().getHostName());
+      }
     }
   }
 
   @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine pSSLEngine) throws CertificateException
   {
-    try {
-      defaultTrustManager.checkServerTrusted(chain, authType, pSSLEngine);
-    }
-    catch (CertificateException e) {
-      _handleCertificateException(chain, e, pSSLEngine.getPeerHost());
+    for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
+      try {
+        defaultTrustManager.checkServerTrusted(chain, authType, pSSLEngine);
+        certAccepted = true;
+
+      } catch (CertificateException e) {
+        _handleCertificateException(chain, e, pSSLEngine.getPeerHost());
+      }
     }
   }
 
@@ -128,7 +155,8 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       if (rootCause instanceof CertificateRevokedException)
         throw pE;
     }
-    tryCustomTrustManager(pChain, pE, pSimpleInfo);
+    if(!certAccepted)
+      tryCustomTrustManager(pChain, pE, pSimpleInfo);
   }
 
   private void tryCustomTrustManager(X509Certificate[] chain, CertificateException e, String pSimpleInfo)
