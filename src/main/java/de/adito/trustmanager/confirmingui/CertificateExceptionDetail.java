@@ -3,6 +3,7 @@ package de.adito.trustmanager.confirmingui;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 import sun.security.util.HostnameChecker;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -10,10 +11,10 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.*;
 
-public class CertificateExceptionDetail {
+class CertificateExceptionDetail {
 
     private ArrayList<EType> typeArray;
     private X509Certificate[] chain;
@@ -23,11 +24,10 @@ public class CertificateExceptionDetail {
         this.chain = pChain;
     }
 
-    public static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
+    static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
         CertificateExceptionDetail trustDetail;
         String errorCode = "";
         ArrayList<EType> typeArray = new ArrayList<>();
-
 
         if (_checkIsSelfSigned(pChain[0])) {
             typeArray.add(EType.SELF_SIGNED);
@@ -46,7 +46,6 @@ public class CertificateExceptionDetail {
         } else if(pChain[0].getNotAfter().compareTo(new Date()) > 0){
                 typeArray.add(EType.UNKNOWN);
                 errorCode = "UNKNOWN_CERT_ERROR";
-
         }
 
         if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
@@ -62,7 +61,6 @@ public class CertificateExceptionDetail {
     }
 
     private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
-
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
         String message = bundle.getString("firstMsg") + "\n\n";
 
@@ -94,7 +92,7 @@ public class CertificateExceptionDetail {
         }
         message += "\n" + bundle.getString("errorCode") + "\t" + pErrorCode + "\n" +
                 bundle.getString("server") + "\t" + pSimpleInfo + "\n\n" +
-                bundle.getString("endWarningMsg");
+                bundle.getString("endWarningMsg") + "\n";
         return message;
     }
 
@@ -129,8 +127,12 @@ public class CertificateExceptionDetail {
     }
 
     private String _formatDate(Date pDate) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd. MMM yyyy, hh:mm:ss");
-        return dateFormat.format(pDate);
+        DateFormat dateFormat = DateFormat.getDateInstance(
+                DateFormat.FULL, Locale.getDefault());
+        DateFormat timeFormat = DateFormat.getTimeInstance(
+                DateFormat.DEFAULT, Locale.getDefault());
+
+        return dateFormat.format(pDate) + ", " + timeFormat.format(pDate);
     }
 
     /*compare to:
@@ -150,14 +152,14 @@ public class CertificateExceptionDetail {
         }
 
         Iterator itAltNames = altNames.iterator();
-        String names = "";
+        StringBuilder names = new StringBuilder();
         while (itAltNames.hasNext()) {
             List extensionEntry = (List) itAltNames.next();
             //nameType:  2 is DNS, 7 is IP
             Integer nameType = (Integer) extensionEntry.get(0);
             //if nameType is 2, extensionEntry is DNS and returned as String
             if(nameType == 2) {
-                names += (String) extensionEntry.get(1);
+                names.append((String) extensionEntry.get(1));
             }
 
             //if nameType is 7, extensionEntry is IP and returned as byteArray
@@ -166,18 +168,18 @@ public class CertificateExceptionDetail {
                 //code not yet tested
                 try {
                     Oid oid = new Oid((byte[]) extensionEntry.get(1));
-                    names += oid.toString();
+                    names.append(oid.toString());
                 } catch (GSSException e) {
                     //Do nothing. Go on to next SubAltName
                 }
             }
 
             if(itAltNames.hasNext()){
-                names += ", ";
+                names.append(", ");
             }
         }
 
-        return names;
+        return names.toString();
     }
 
     enum EType {

@@ -7,7 +7,7 @@ import java.awt.event.KeyEvent;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-public class CertificateExceptionDialog extends JDialog {
+class CertificateExceptionDialog extends JDialog {
 
     private JPanel mainPanel;
     private JPanel extButtonPanel;
@@ -18,7 +18,7 @@ public class CertificateExceptionDialog extends JDialog {
     private int buttonChoice;
     private String detailMsg;
 
-    public CertificateExceptionDialog(String pDetailMessage){
+    CertificateExceptionDialog(String pDetailMessage){
         super((Frame)null, true);
         this.buttonChoice = -1;
         this.isExtended = false;
@@ -143,7 +143,7 @@ public class CertificateExceptionDialog extends JDialog {
 
     }
 
-    public int getButtonChoice() {
+    int getButtonChoice() {
         return buttonChoice;
     }
 }
