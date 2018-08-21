@@ -63,37 +63,38 @@ public class CertificateExceptionDetail {
 
     private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
 
-        String message = "Dem Sicherheitszertifikat dieser Verbindung wird von ihrem PC nicht vertraut.\n\n";
+        ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
+        String message = bundle.getString("firstMsg") + "\n\n";
 
         for(EType type : typeArray) {
             switch (type) {
                 case EXPIRED:
                     //new Date() returns current time
-                    message += "Das Zertifikat ist am " + _formatDate(chain[0].getNotAfter()) + " abgelaufen. Die aktuelle Zeit ist \n" + _formatDate(new Date()) + ".\n";
+                    message += String.format(bundle.getString("expired1") + "%1$s " +
+                                    bundle.getString("expired2")+ "%2$s.\n" ,
+                            _formatDate(chain[0].getNotAfter()), _formatDate(new Date()));
                     break;
 
                 case WRONG_HOST:
-                    message += "Das Zertifikat gilt nur für folgende Namen:\n" + _getSubjectAlternativeNames() + "\n";
+                    message += bundle.getString("wrongHost") + "\n" + _getSubjectAlternativeNames() + "\n";
                     break;
 
                 case SELF_SIGNED:
-                    message += "Dem Zertifikat wird nicht vertraut, weil es vom Aussteller selbst signiert wurde.\n";
+                    message += bundle.getString("selfSigned")+ "\n";
                     break;
 
                 case UNTRUSTED_ROOT:
-                    message += "Dem Zertifikat wird nicht vertraut, weil das Aussteller-Zertifikat unbekannt ist.\n" +
-                            "Der Server sendet eventuell nicht die richtigen Zwischen-Zertifikate.\n" +
-                            "Eventuell muss ein zusätzliches Stammzertifikat importiert werden.\n";
+                    message += bundle.getString("untrustedRoot")+ "\n";
                     break;
 
                 default: //UNKNOWN
-                    message += "Dem Zertifikat wird aus unbekannten Gründen nicht vertraut.\n";
+                    message += bundle.getString("unknown")+ "\n";
                     break;
             }
         }
-        message += "\nFehlercode:\t" + pErrorCode + "\n" +
-                "Server:\t" + pSimpleInfo + "\n\n" +
-                "Sie können eigenverantwortlich dieser Verbindung vertrauen oder den Vorgang abbrechen.\n";
+        message += "\n" + bundle.getString("errorCode") + "\t" + pErrorCode + "\n" +
+                bundle.getString("server") + "\t" + pSimpleInfo + "\n\n" +
+                bundle.getString("endWarningMsg");
         return message;
     }
 
@@ -115,6 +116,15 @@ public class CertificateExceptionDetail {
         } catch (NoSuchProviderException | NoSuchAlgorithmException exc) {
             //not able to tell if cert is sef-signed; exception might be displayed as unknown
             return true;
+        }
+    }
+
+    private static boolean _checkHostname(String pHostname, X509Certificate[] pChain){
+        try {
+            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(pHostname, pChain[0]);
+            return true;
+        } catch (CertificateException exc){
+            return false;
         }
     }
 
@@ -168,15 +178,6 @@ public class CertificateExceptionDetail {
         }
 
         return names;
-    }
-
-    private static boolean _checkHostname(String pHostname, X509Certificate[] pChain){
-        try {
-            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(pHostname, pChain[0]);
-            return true;
-        } catch (CertificateException exc){
-            return false;
-        }
     }
 
     enum EType {

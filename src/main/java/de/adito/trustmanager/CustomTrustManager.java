@@ -8,10 +8,7 @@ import java.net.Socket;
 import java.nio.file.*;
 import java.security.*;
 import java.security.cert.*;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
@@ -43,7 +40,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       throw new IllegalStateException("No trust managers found");
     defaultTrustManagers.add((X509ExtendedTrustManager) tm[0]);
 
-    //trustStore = pTrustStore;
+    //initialize second truststore
 
     TrustManagerFactory tmf1 = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
@@ -76,15 +73,14 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     javax.net.ssl.TrustManager[] tm1 = tmf1.getTrustManagers();
     if (tm1.length == 0)
       throw new IllegalStateException("No trust managers found");
+
     defaultTrustManagers.add((X509ExtendedTrustManager) tm1[0]);
   }
 
   public X509Certificate[] getAcceptedIssuers() {
     List<X509Certificate> certificates = new LinkedList<>();
     for (X509ExtendedTrustManager trustManager : defaultTrustManagers) {
-      for (X509Certificate cert : trustManager.getAcceptedIssuers()) {
-        certificates.add(cert);
-      }
+      certificates.addAll(Arrays.asList(trustManager.getAcceptedIssuers()));
     }
     return certificates.toArray(new X509Certificate[certificates.size()]);
   }

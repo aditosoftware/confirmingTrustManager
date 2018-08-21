@@ -12,7 +12,7 @@ import java.security.cert.*;
 
 public class ConfirmingUITrustManager extends CustomTrustManager {
 
-  public ConfirmingUITrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException,
+  private ConfirmingUITrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException,
       IOException, CertificateException, InvalidAlgorithmParameterException
   {
     super(pTrustStore);

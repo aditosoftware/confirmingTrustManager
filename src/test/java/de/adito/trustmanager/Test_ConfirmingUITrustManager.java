@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class Test_ConfirmingUITrustManager {
@@ -21,10 +22,12 @@ public class Test_ConfirmingUITrustManager {
         try {
 //    LookAndFeel lf = new AditoSyntheticaLFFlat();
 //    UIManager.setLookAndFeel(lf);
-            LookAndFeelSetter.set();
+          LookAndFeelSetter.set();
         } catch (AditoException e) {
-            e.printStackTrace();
+           e.printStackTrace();
         }
+
+        Locale.setDefault(new Locale("de"));
 
         //System.setProperty("javax.net.ssl.trustStore", "NUL");
         //System.setProperty("javax.net.ssl.trustStoreType", "Windows-ROOT");
@@ -35,12 +38,13 @@ public class Test_ConfirmingUITrustManager {
 
     @Test
     void test() throws IOException {
-        //_read(new URL("https://expired.badssl.com/"));
-        //_read(new URL("https://wrong.host.badssl.com/"));
-        _read(new URL("https://self-signed.badssl.com"));        // Certificate is now expired
-        //_read(new URL("https://untrusted-root.badssl.com/"));
-        //_read(new URL("https://revoked.badssl.com/"));            //needs old logic
-        //_read(new URL("https://gitintern.aditosoftware.local"));
+        _read(new URL("https://expired.badssl.com/"));
+        _read(new URL("https://wrong.host.badssl.com/"));
+        _read(new URL("https://self-signed.badssl.com"));
+        _read(new URL("https://untrusted-root.badssl.com/"));
+        _read(new URL("https://gitintern.aditosoftware.local"));
+        _read(new URL("https://revoked.badssl.com/"));
+
     }
 
     private String _read(URL pUrl) throws IOException {

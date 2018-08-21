@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class CertificateExceptionDialog extends JDialog {
 
@@ -11,6 +13,7 @@ public class CertificateExceptionDialog extends JDialog {
     private JPanel extButtonPanel;
     private JScrollPane extScrollPane;
 
+    private ResourceBundle bundle;
     private boolean isExtended;
     private int buttonChoice;
     private String detailMsg;
@@ -20,19 +23,18 @@ public class CertificateExceptionDialog extends JDialog {
         this.buttonChoice = -1;
         this.isExtended = false;
         this.detailMsg = pDetailMessage;
+        bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
+
         _createFirstDialog();
     }
 
     private void _createFirstDialog() {
-        String msg = "Es liegt ein Problem mit dem Sicherheitszertifikat der Verbindung vor.\n\n" +
-                "Das Zertifikat konnte nicht verifiziert werden.\n\n" +
-                "Sie können den Vorgang abbrechen, oder in den erweiterten Einstellungen bearbeiten.";
 
-        setTitle("Zertifikat Management");
+        setTitle(bundle.getString("frameTitle"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mainPanel = new JPanel(new GridBagLayout());
 
-        JTextArea dialog = new JTextArea(msg);
+        JTextArea dialog = new JTextArea(bundle.getString("unextedText"));
         dialog.setEditable(false);
         dialog.setOpaque(false);
 
@@ -47,8 +49,8 @@ public class CertificateExceptionDialog extends JDialog {
         constraintText.gridheight = 1;
         constraintText.anchor = GridBagConstraints.CENTER;
 
-        JButton extendDialog = new JButton("Erweitern");
-        JButton cancel = new JButton("Abbrechen");
+        JButton extendDialog = new JButton(bundle.getString("extDialog"));
+        JButton cancel = new JButton(bundle.getString("cancel"));
         cancel.addActionListener(pEvent -> {
             buttonChoice = 2;
             dispose();
@@ -102,8 +104,8 @@ public class CertificateExceptionDialog extends JDialog {
         textConstraints.anchor = GridBagConstraints.CENTER;
 
         //Button Handling
-        JButton trust = new JButton("Ausnahme hinzufügen");
-        JButton trustOnce = new JButton("Einmalig vertrauen");
+        JButton trust = new JButton(bundle.getString("trust"));
+        JButton trustOnce = new JButton(bundle.getString("trustOnce"));
         trust.addActionListener(pEvent -> {
             buttonChoice = 1;
             dispose();
