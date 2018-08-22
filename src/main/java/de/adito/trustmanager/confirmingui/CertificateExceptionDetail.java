@@ -14,18 +14,20 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.util.*;
 
-class CertificateExceptionDetail {
+public class CertificateExceptionDetail {
 
     private ArrayList<EType> typeArray;
     private X509Certificate[] chain;
+    private String errorCode;
 
-    private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain) {
+    private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain, String pErrorCode) {
         this.typeArray = pType;
         this.chain = pChain;
+        this.errorCode = pErrorCode;
     }
 
-    static String createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
-        CertificateExceptionDetail trustDetail;
+    public static CertificateExceptionDetail createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
+        //CertificateExceptionDetail trustDetail;
         String errorCode = "";
         ArrayList<EType> typeArray = new ArrayList<>();
 
@@ -56,11 +58,11 @@ class CertificateExceptionDetail {
             typeArray.add(EType.EXPIRED);
         }
 
-        trustDetail = new CertificateExceptionDetail(typeArray, pChain);
-        return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
+        return new CertificateExceptionDetail(typeArray, pChain, errorCode);
+        //return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
 
-    private String _makeExceptionMessage(String pSimpleInfo, String pErrorCode) {
+    String _makeExceptionMessage(String pSimpleInfo) {
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
         String message = bundle.getString("firstMsg") + "\n\n";
 
@@ -90,7 +92,7 @@ class CertificateExceptionDetail {
                     break;
             }
         }
-        message += "\n" + bundle.getString("errorCode") + "\t" + pErrorCode + "\n" +
+        message += "\n" + bundle.getString("errorCode") + "\t" + errorCode + "\n" +
                 bundle.getString("server") + "\t" + pSimpleInfo + "\n\n" +
                 bundle.getString("endWarningMsg") + "\n";
         return message;
@@ -182,7 +184,11 @@ class CertificateExceptionDetail {
         return names.toString();
     }
 
-    enum EType {
+    public ArrayList<EType> getTypeArray(){
+        return typeArray;
+    }
+
+    public enum EType {
         EXPIRED,
         WRONG_HOST,
         SELF_SIGNED,
@@ -190,3 +196,5 @@ class CertificateExceptionDetail {
         UNKNOWN
     }
 }
+
+

@@ -1,6 +1,5 @@
 package de.adito.trustmanager.confirmingui;
 
-
 import de.adito.trustmanager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
@@ -30,7 +29,9 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
   protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pCertExc, String pSimpleInfo)
           throws CertificateException {
 
-    String detailMessage = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
+    CertificateExceptionDetail certExcDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
+    String detailMessage = certExcDetail._makeExceptionMessage(pSimpleInfo);
+
     CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(detailMessage);
     certExceptionDialog.setVisible(true);
 
