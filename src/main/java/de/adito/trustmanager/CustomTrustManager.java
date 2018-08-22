@@ -1,5 +1,6 @@
 package de.adito.trustmanager;
 
+import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.*;
@@ -16,11 +17,15 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
   private ICustomTrustStore trustStore;
+  private boolean acceptedCert;
+  private int count;
 
   public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
+    acceptedCert = false;
+    count = 0;
 
     // initialize certification path checking for the offered certificates and revocation checks against CLRs
     CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
@@ -69,8 +74,11 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     if (javaTM.length == 0 || winTM.length == 0)
       throw new IllegalStateException("No trust managers found");
 
-    defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
+    //defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
+    defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
+
+
   }
 
   public X509Certificate[] getAcceptedIssuers() {
@@ -116,10 +124,12 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
       try {
         defaultTrustManager.checkServerTrusted(chain, authType, pSocket);
+        acceptedCert = true;
 
       } catch (CertificateException e) {
         _handleCertificateException(chain, e, pSocket.getInetAddress().getHostName());
       }
+
     }
   }
 
@@ -146,7 +156,18 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       if (rootCause instanceof CertificateRevokedException)
         throw pE;
     }
-
+    ArrayList<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo).getTypeArray();
+    if(defaultTrustManagers.size() != 1 && list.size() == 1 && list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT)) {
+        if (acceptedCert){//if there is more than one trustmanager, but one already recognized the certificate
+            return;
+        }
+        if(!acceptedCert && count < defaultTrustManagers.size() - 1){
+            count++;
+            return;
+        }
+    }
+    count = 0;
+    acceptedCert = false;
     tryCustomTrustManager(pChain, pE, pSimpleInfo);
 
   }
