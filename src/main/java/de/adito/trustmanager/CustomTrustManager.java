@@ -18,14 +18,14 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
   private ICustomTrustStore trustStore;
   private boolean acceptedCert;
-  private int count;
+  private int countHandledTMs;
 
   public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
     acceptedCert = false;
-    count = 0;
+    countHandledTMs = 0;
 
     // initialize certification path checking for the offered certificates and revocation checks against CLRs
     CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
@@ -35,7 +35,6 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
             PKIXRevocationChecker.Option.ONLY_END_ENTITY,
             PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
             PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
-
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
     KeyManagerFactory winKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -46,7 +45,6 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     } catch (UnrecoverableKeyException e) {
       e.printStackTrace();
     }
-
     PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(winKeyStore, new X509CertSelector());
     winPkixParams.addCertPathChecker(revocationChecker);
     trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
@@ -76,7 +74,6 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 
     defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
-
   }
 
   public X509Certificate[] getAcceptedIssuers() {
@@ -84,22 +81,22 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     for (X509ExtendedTrustManager trustManager : defaultTrustManagers) {
       certificates.addAll(Arrays.asList(trustManager.getAcceptedIssuers()));
     }
-    return certificates.toArray(new X509Certificate[certificates.size()]);
+    return certificates.toArray(new X509Certificate[0]);
   }
 
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
+  public void checkClientTrusted(X509Certificate[] pChain, String pAuthType)
   {
     throw new UnsupportedOperationException("checkClientTrusted");
   }
 
   @Override
-  public void checkClientTrusted(X509Certificate[] chain, String authType, Socket pSocket)
+  public void checkClientTrusted(X509Certificate[] pChain, String pAuthType, Socket pSocket)
   {
     throw new UnsupportedOperationException("checkClientTrusted");
   }
 
   @Override
-  public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine pSSLEngine)
+  public void checkClientTrusted(X509Certificate[] pChain, String pAuthType, SSLEngine pSSLEngine)
   {
     throw new UnsupportedOperationException("checkClientTrusted");
   }
@@ -146,37 +143,36 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     }
   }
 
-  private void _handleCertificateException(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo) throws CertificateException
+  private void _handleCertificateException(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo) throws CertificateException
   {
     if (pChain == null || pChain.length == 0)
-      throw pE;
-    Throwable cause = pE.getCause();
+      throw pException;
+    Throwable cause = pException.getCause();
     if (cause instanceof CertPathValidatorException) {
       Throwable rootCause = cause.getCause();
       if (rootCause instanceof CertificateRevokedException)
-        throw pE;
+        throw pException;
     }
     //get the type of the thrown exception to determine behaviour -> go to exceptionDialog or test the other trustManagers
-    ArrayList<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo).getTypeArray();
+    ArrayList<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pException, pSimpleInfo).getTypeArray();
 
     if(defaultTrustManagers.size() != 1 && list.size() == 1 && (list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT) ||
             list.contains(CertificateExceptionDetail.EType.SELF_SIGNED))) {
         if (acceptedCert){//if there is more than one trustManager, but one already recognized the certificate
             return;
         }
-        if(count < defaultTrustManagers.size() - 1){//keep track of number of already tested trustManagers. if all don't accept the cert, the exceptionDialog will appear
-            count++;
+        if(countHandledTMs < defaultTrustManagers.size() - 1){//keep track of number of already tested trustManagers. if all don't accept the cert, the exceptionDialog will appear
+            countHandledTMs++;
             return;
         }
     }
     //reset counter and acceptedCert in case there are other servers tested later
-    count = 0;
+    countHandledTMs = 0;
     acceptedCert = false;
-    tryCustomTrustManager(pChain, pE, pSimpleInfo);
-
+    tryCustomTrustManager(pChain, pException, pSimpleInfo);
   }
 
-  private void tryCustomTrustManager(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
+  private void tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)
       throws CertificateException
   {
     {
@@ -184,7 +180,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       String alias = TrustManagerUtil.hashSHA1(certificate);
       if (trustStore.get(alias) != null)
         return;
-      boolean persist = checkCertificateAndShouldPersist(pChain, pE, pSimpleInfo);
+      boolean persist = checkCertificateAndShouldPersist(pChain, pException, pSimpleInfo);
       trustStore.add(alias, certificate, persist);
     }
   }

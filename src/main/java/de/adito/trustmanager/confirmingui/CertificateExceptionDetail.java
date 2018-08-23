@@ -62,7 +62,7 @@ public class CertificateExceptionDetail {
         //return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
 
-    String _makeExceptionMessage(String pSimpleInfo) {
+    String makeExceptionMessage(String pSimpleInfo) {
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         if(pSimpleInfo == null)
             pSimpleInfo = bundle.getString("simpleInfoNull");

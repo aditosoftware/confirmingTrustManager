@@ -30,7 +30,7 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
           throws CertificateException {
 
     CertificateExceptionDetail certExcDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
-    String detailMessage = certExcDetail._makeExceptionMessage(pSimpleInfo);
+    String detailMessage = certExcDetail.makeExceptionMessage(pSimpleInfo);
 
     CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(detailMessage);
     certExceptionDialog.setVisible(true);

@@ -26,11 +26,7 @@ public class Test_ConfirmingUITrustManager {
         } catch (AditoException e) {
            e.printStackTrace();
         }
-
         Locale.setDefault(new Locale("de"));
-
-        //System.setProperty("javax.net.ssl.trustStore", "NUL");
-        //System.setProperty("javax.net.ssl.trustStoreType", "Windows-ROOT");
 
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore());
         SSLContext.setDefault(sslContext);
