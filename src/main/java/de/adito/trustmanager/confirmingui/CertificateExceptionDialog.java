@@ -23,7 +23,7 @@ class CertificateExceptionDialog extends JDialog {
         this.buttonChoice = -1;
         this.isExtended = false;
         this.detailMsg = pDetailMessage;
-        bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
+        bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
 
         _createFirstDialog();
     }
