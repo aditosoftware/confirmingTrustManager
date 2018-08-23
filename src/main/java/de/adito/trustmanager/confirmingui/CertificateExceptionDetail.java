@@ -41,7 +41,7 @@ public class CertificateExceptionDetail {
             typeArray.add(EType.UNTRUSTED_ROOT);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
 
-        } else if(!_checkHostname(pSimpleInfo, pChain)){
+        } else if(pSimpleInfo != null && !_checkHostname(pSimpleInfo, pChain)){
             typeArray.add(EType.WRONG_HOST);
             errorCode = "SSL_ERROR_BAD_CERT_DOMAIN";
 
@@ -64,8 +64,10 @@ public class CertificateExceptionDetail {
 
     String _makeExceptionMessage(String pSimpleInfo) {
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.detailMessage", Locale.getDefault());
-        String message = bundle.getString("firstMsg") + "\n\n";
+        if(pSimpleInfo == null)
+            pSimpleInfo = bundle.getString("simpleInfoNull");
 
+        String message = bundle.getString("firstMsg") + "\n\n";
         for(EType type : typeArray) {
             switch (type) {
                 case EXPIRED:

@@ -74,10 +74,10 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     if (javaTM.length == 0 || winTM.length == 0)
       throw new IllegalStateException("No trust managers found");
 
-    //defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
-
+    defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
+    defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
 
   }
 
@@ -106,42 +106,44 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     throw new UnsupportedOperationException("checkClientTrusted");
   }
 
-  public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+  public void checkServerTrusted(X509Certificate[] pChain, String pAuthType) throws CertificateException
   {
     for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
       try {
-        defaultTrustManager.checkServerTrusted(chain, authType);
-
-      } catch (CertificateException e) {
-        _handleCertificateException(chain, e, null);
-      }
-    }
-  }
-
-  @Override
-  public void checkServerTrusted(X509Certificate[] chain, String authType, Socket pSocket) throws CertificateException
-  {
-    for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
-      try {
-        defaultTrustManager.checkServerTrusted(chain, authType, pSocket);
+        defaultTrustManager.checkServerTrusted(pChain, pAuthType);
         acceptedCert = true;
 
       } catch (CertificateException e) {
-        _handleCertificateException(chain, e, pSocket.getInetAddress().getHostName());
+        _handleCertificateException(pChain, e, null);
+      }
+    }
+  }
+
+  @Override
+  public void checkServerTrusted(X509Certificate[] pChain, String pAuthType, Socket pSocket) throws CertificateException
+  {
+    for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
+      try {
+        defaultTrustManager.checkServerTrusted(pChain, pAuthType, pSocket);
+        acceptedCert = true;
+
+      } catch (CertificateException e) {
+        _handleCertificateException(pChain, e, pSocket.getInetAddress().getHostName());
       }
 
     }
   }
 
   @Override
-  public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine pSSLEngine) throws CertificateException
+  public void checkServerTrusted(X509Certificate[] pChain, String pAuthType, SSLEngine pSSLEngine) throws CertificateException
   {
     for(X509ExtendedTrustManager defaultTrustManager : defaultTrustManagers) {
       try {
-        defaultTrustManager.checkServerTrusted(chain, authType, pSSLEngine);
+        defaultTrustManager.checkServerTrusted(pChain, pAuthType, pSSLEngine);
+        acceptedCert = true;
 
       } catch (CertificateException e) {
-        _handleCertificateException(chain, e, pSSLEngine.getPeerHost());
+        _handleCertificateException(pChain, e, pSSLEngine.getPeerHost());
       }
     }
   }
@@ -156,16 +158,20 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       if (rootCause instanceof CertificateRevokedException)
         throw pE;
     }
+    //get the type of the thrown exception to determine behaviour -> go to exceptionDialog or test the other trustManagers
     ArrayList<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo).getTypeArray();
-    if(defaultTrustManagers.size() != 1 && list.size() == 1 && list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT)) {
-        if (acceptedCert){//if there is more than one trustmanager, but one already recognized the certificate
+
+    if(defaultTrustManagers.size() != 1 && list.size() == 1 && (list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT) ||
+            list.contains(CertificateExceptionDetail.EType.SELF_SIGNED))) {
+        if (acceptedCert){//if there is more than one trustManager, but one already recognized the certificate
             return;
         }
-        if(!acceptedCert && count < defaultTrustManagers.size() - 1){
+        if(count < defaultTrustManagers.size() - 1){//keep track of number of already tested trustManagers. if all don't accept the cert, the exceptionDialog will appear
             count++;
             return;
         }
     }
+    //reset counter and acceptedCert in case there are other servers tested later
     count = 0;
     acceptedCert = false;
     tryCustomTrustManager(pChain, pE, pSimpleInfo);
