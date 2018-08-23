@@ -76,8 +76,6 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 
     defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
-    defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
-    defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
 
   }
 
