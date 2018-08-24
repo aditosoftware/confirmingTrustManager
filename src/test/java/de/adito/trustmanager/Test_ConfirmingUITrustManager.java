@@ -1,15 +1,21 @@
 package de.adito.trustmanager;
 
-import de.adito.aditoweb.core.checkpoint.exception.mechanics.AditoException;
-import de.adito.aditoweb.swingcommon.lf.LookAndFeelSetter;
+
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLContext;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -19,14 +25,8 @@ public class Test_ConfirmingUITrustManager {
     @BeforeAll
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException {
-        try {
-//    LookAndFeel lf = new AditoSyntheticaLFFlat();
-//    UIManager.setLookAndFeel(lf);
-          LookAndFeelSetter.set();
-        } catch (AditoException e) {
-           e.printStackTrace();
-        }
-        Locale.setDefault(new Locale("de"));
+
+       //Locale.setDefault(new Locale("en"));
 
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore());
         SSLContext.setDefault(sslContext);
@@ -34,12 +34,12 @@ public class Test_ConfirmingUITrustManager {
 
     @Test
     void test() throws IOException {
-        _read(new URL("https://expired.badssl.com/"));
-        _read(new URL("https://wrong.host.badssl.com/"));
-        _read(new URL("https://self-signed.badssl.com"));
+        //_read(new URL("https://expired.badssl.com/"));
+        //_read(new URL("https://wrong.host.badssl.com/"));
+        //_read(new URL("https://self-signed.badssl.com"));
         _read(new URL("https://untrusted-root.badssl.com/"));
         _read(new URL("https://gitintern.aditosoftware.local"));
-        _read(new URL("https://revoked.badssl.com/"));
+        //_read(new URL("https://revoked.badssl.com/"));
 
     }
 
