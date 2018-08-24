@@ -9,7 +9,6 @@ import java.util.ResourceBundle;
 
 class CertificateExceptionDialog extends JDialog {
 
-    private JPanel mainPanel;
     private JPanel extButtonPanel;
     private JScrollPane extScrollPane;
 
@@ -32,12 +31,11 @@ class CertificateExceptionDialog extends JDialog {
 
         setTitle(bundle.getString("frameTitle"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        mainPanel = new JPanel(new GridBagLayout());
+        setLayout(new GridBagLayout());
 
         JTextArea dialog = new JTextArea(bundle.getString("unextedText"));
         dialog.setEditable(false);
         dialog.setOpaque(false);
-
         JScrollPane scrollPane = new JScrollPane(dialog);
         scrollPane.setBorder(null);
 
@@ -47,7 +45,7 @@ class CertificateExceptionDialog extends JDialog {
         constraintText.gridy = 0;
         constraintText.gridwidth = 2;
         constraintText.gridheight = 1;
-        constraintText.insets = new Insets(0,25,0,25);
+        constraintText.insets = new Insets(0,30,0,30);
         constraintText.anchor = GridBagConstraints.CENTER;
 
         JButton extendDialog = new JButton(bundle.getString("extDialog"));
@@ -79,9 +77,8 @@ class CertificateExceptionDialog extends JDialog {
         ActionListener keyAction = pressedKey -> dispose();
         getRootPane().registerKeyboardAction(keyAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-        mainPanel.add(scrollPane, constraintText);
-        mainPanel.add(buttonPanel, constraintsButton);
-        add(mainPanel);
+        add(scrollPane, constraintText);
+        add(buttonPanel, constraintsButton);
 
         setAlwaysOnTop(true);
         setResizable(false);
@@ -126,8 +123,8 @@ class CertificateExceptionDialog extends JDialog {
         button2.insets = new Insets(0,6,0,6);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
 
-        mainPanel.add(extScrollPane, textConstraints);
-        mainPanel.add(extButtonPanel, button2);
+        add(extScrollPane, textConstraints);
+        add(extButtonPanel, button2);
 
         pack();
         validate();
@@ -136,8 +133,8 @@ class CertificateExceptionDialog extends JDialog {
     }
 
     private void _hideExtendedDialog() {
-        mainPanel.remove(extScrollPane);
-        mainPanel.remove(extButtonPanel);
+        remove(extScrollPane);
+        remove(extButtonPanel);
         pack();
         validate();
         repaint();
