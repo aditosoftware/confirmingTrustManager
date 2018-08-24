@@ -36,7 +36,7 @@ public class CertificateExceptionDetail {
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
             //expired, selfsigned and untrusted all are
-            //instance of ValidatorException, if Exception contains 'builing' in its string, it is selfsigned, or untrusted root
+            //instance of ValidatorException, if Exception contains 'building' in its string, it is selfsigned, or untrusted root
         } else if(pCertificateException.getMessage().contains("PKIX path building failed") && !_checkIsSelfSigned(pChain[0])) {
             typeArray.add(EType.UNTRUSTED_ROOT);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";

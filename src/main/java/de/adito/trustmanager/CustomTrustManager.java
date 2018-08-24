@@ -24,6 +24,8 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
+
+    String osName = System.getProperty("os.name");
     acceptedCert = false;
     countHandledTMs = 0;
 
@@ -37,21 +39,25 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
             PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
-    KeyManagerFactory winKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    KeyStore winKeyStore = KeyStore.getInstance("Windows-ROOT");
-    winKeyStore.load(null, null);
-    try {
-      winKeyManagerFactory.init(winKeyStore, null);
-    } catch (UnrecoverableKeyException e) {
-      e.printStackTrace();
+    if(osName.startsWith("Windows")) {
+      KeyManagerFactory winKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      KeyStore winKeyStore = KeyStore.getInstance("Windows-ROOT");
+      winKeyStore.load(null, null);
+      try {
+        winKeyManagerFactory.init(winKeyStore, null);
+      } catch (UnrecoverableKeyException e) {
+        e.printStackTrace();
+      }
+      PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(winKeyStore, new X509CertSelector());
+      winPkixParams.addCertPathChecker(revocationChecker);
+      trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
+      javax.net.ssl.TrustManager[] winTM = trustManagerFactory.getTrustManagers();
+      if (winTM.length == 0)
+        throw new IllegalStateException("No trust managers found");
+      defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     }
-    PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(winKeyStore, new X509CertSelector());
-    winPkixParams.addCertPathChecker(revocationChecker);
-    trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
-    javax.net.ssl.TrustManager[] winTM = trustManagerFactory.getTrustManagers();
 
-    //initialize second truststore
-
+//initialize default trustManager
     String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
     if (javaKeyStorePath == null) {
       String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
@@ -68,11 +74,9 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     javaPkixParams.addCertPathChecker(revocationChecker);
     trustManagerFactory.init(new CertPathTrustManagerParameters(javaPkixParams));
     javax.net.ssl.TrustManager[] javaTM= trustManagerFactory.getTrustManagers();
-
-    if (javaTM.length == 0 || winTM.length == 0)
+    if (javaTM.length == 0)
       throw new IllegalStateException("No trust managers found");
 
-    defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
   }
 
