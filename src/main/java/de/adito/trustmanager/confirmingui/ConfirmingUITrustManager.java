@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.*;
 
+/**
+ * This class calls CustomTrustManager, which will handle the certificateException, creates a SSLContext and also prompts
+ * the JDialog to be shown
+ */
 
 public class ConfirmingUITrustManager extends CustomTrustManager {
 
@@ -39,7 +43,7 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
     switch (r){    // Will decide to trust or not trust the certificate
       case 0:       //trust once
         return false;
-      case 1:       //add exception
+      case 1:       //add certificate permanently
         return true;
       default:
         throw pCertExc;  //cancel

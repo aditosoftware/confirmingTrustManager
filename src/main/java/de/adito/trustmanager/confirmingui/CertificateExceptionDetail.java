@@ -14,6 +14,11 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.util.*;
 
+/**
+ * This class determines the type of a thrown CertificateException and creates a unique message for the extended JDialog
+ * If pSimpleInfo is null, it will be replaced with eg. "unknown server"
+ */
+
 public class CertificateExceptionDetail {
 
     private ArrayList<EType> typeArray;
@@ -26,8 +31,16 @@ public class CertificateExceptionDetail {
         this.errorCode = pErrorCode;
     }
 
+    /**
+     * This method determines the details of the certificateException. If Selfsigned, untrustedRoot or WrongHost Exception
+     * is expired, it will be displayed in the extended message, too.
+     * @param pChain
+     * @param pCertificateException
+     * @param pSimpleInfo
+     * @return an Object with which the String for the JDialog can be built
+     * @throws CertificateException
+     */
     public static CertificateExceptionDetail createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
-        //CertificateExceptionDetail trustDetail;
         String errorCode = "";
         ArrayList<EType> typeArray = new ArrayList<>();
 
@@ -35,8 +48,7 @@ public class CertificateExceptionDetail {
             typeArray.add(EType.SELF_SIGNED);
             errorCode = "PKIX_ERROR_SELF_SIGNED_CERT";
 
-            //expired, selfsigned and untrusted all are
-            //instance of ValidatorException, if Exception contains 'building' in its string, it is selfsigned, or untrusted root
+            //if Exception contains 'building' in its string, it is selfsigned, or untrusted root
         } else if(pCertificateException.getMessage().contains("PKIX path building failed") && !_checkIsSelfSigned(pChain[0])) {
             typeArray.add(EType.UNTRUSTED_ROOT);
             errorCode = "SEC_ERROR_UNKNOWN_ISSUER";
@@ -51,7 +63,6 @@ public class CertificateExceptionDetail {
         }
 
         if(pChain[0].getNotAfter().compareTo(new Date()) < 0) {
-            // compareTo() return value less than 0 if Date is before argument
             if(typeArray.isEmpty()){
                 errorCode = "SEC_ERROR_EXPIRED_CERTIFICATE";
             }
@@ -59,7 +70,6 @@ public class CertificateExceptionDetail {
         }
 
         return new CertificateExceptionDetail(typeArray, pChain, errorCode);
-        //return trustDetail._makeExceptionMessage(pSimpleInfo, errorCode);
     }
 
     String makeExceptionMessage(String pSimpleInfo) {
@@ -100,14 +110,16 @@ public class CertificateExceptionDetail {
         return message;
     }
 
-    /*Compare to:
-    http://www.nakov.com/blog/2009/12/01/x509-certificate-validation-in-java-build-and-verify-chain-and-verify-clr-with-bouncy-castle/
-    line 99 ff
+    /**
+     * This method tries to to verify its certificate signature with its own public key.
+     * @param pCert
+     * @return true if the certificate is selfSigned
+     * @throws CertificateException
+     * @see <a href="http://www.nakov.com/blog/2009/12/01/x509-certificate-validation-in-java-build-and-verify-chain-and-verify-clr-with-bouncy-castle/">nakov.com line 99 ff</a>
      */
     private static boolean _checkIsSelfSigned(X509Certificate pCert)
             throws CertificateException {
         try {
-            // Try to verify certificate signature with its own public key -> is self-signed
             pCert.verify(pCert.getPublicKey());
             return true;
 
@@ -139,10 +151,11 @@ public class CertificateExceptionDetail {
         return dateFormat.format(pDate) + ", " + timeFormat.format(pDate);
     }
 
-    /*compare to:
-    http://www.javadocexamples.com/java_source/net/sf/jguard/ext/authentication/loginmodules/CertificateLoginModule.java.html
-    line 118 ff
-    */
+    /**
+     * This method displays a certificate's alternative DNS-Names and IP-Addresses
+     * @return a String of all DNS-Names and IP-Addresses split by a ','
+     * @see <a href="http://www.javadocexamples.com/java_source/net/sf/jguard/ext/authentication/loginmodules/CertificateLoginModule.java.html">javadocexamples.com line 118 ff</a>
+     */
     private String _getSubjectAlternativeNames() {
         Collection altNames;
         try {

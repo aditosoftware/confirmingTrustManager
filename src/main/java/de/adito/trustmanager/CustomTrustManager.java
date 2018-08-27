@@ -13,6 +13,13 @@ import java.security.*;
 import java.security.cert.*;
 import java.util.*;
 
+/**
+ * This class initiates a list of TrustManagers to test if the Certificate is already trusted by any of these TMs. If it
+ * is not trusted, the certificateException will be caught and the JDialog to decide what to do will be prompted.
+ * The Java trustManager will be used as default.
+ * All trustManagers are initialised to throw a certificateRevokedException in case of a revoked certificate
+ */
+
 public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
@@ -147,6 +154,16 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     }
   }
 
+  /**
+   * This method first checks for a certificateRevokedException. Furthermore it will check the other trustManagers in the
+   * list, if the exception is 'untrustedRoot' or 'selfsigned'. If one of the trustManagers recognises the certificate, the
+   * certificate will be trusted. Otherwise 'countHandledTMs' and 'acceptedCert' will be reseted in case of another
+   * certificate check.
+   * @param pChain
+   * @param pException
+   * @param pSimpleInfo
+   * @throws CertificateException
+   */
   private void _handleCertificateException(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo) throws CertificateException
   {
     if (pChain == null || pChain.length == 0)
@@ -173,10 +190,17 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     //reset counter and acceptedCert in case there are other servers tested later
     countHandledTMs = 0;
     acceptedCert = false;
-    tryCustomTrustManager(pChain, pException, pSimpleInfo);
+    _tryCustomTrustManager(pChain, pException, pSimpleInfo);
   }
 
-  private void tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)
+  /**
+   * This method will use the decision of the user and add the certificate permanently or only trust it once
+   * @param pChain
+   * @param pException
+   * @param pSimpleInfo
+   * @throws CertificateException
+   */
+  private void _tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)
       throws CertificateException
   {
     {
