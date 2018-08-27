@@ -49,23 +49,37 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
             PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
-    if(osName.startsWith("Windows")) {
-      KeyManagerFactory winKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      KeyStore winKeyStore = KeyStore.getInstance("Windows-ROOT");
-      winKeyStore.load(null, null);
-      try {
-        winKeyManagerFactory.init(winKeyStore, null);
-      } catch (UnrecoverableKeyException e) {
-        e.printStackTrace();
+
+      KeyManagerFactory osKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      KeyStore osKeyStore;
+      if(osName.startsWith("Windows")) {
+          osKeyStore = KeyStore.getInstance("Windows-ROOT");
+      }else if(osName.startsWith("Mac")){
+          try {
+              osKeyStore = KeyStore.getInstance("KeychainStore", "Apple");
+          } catch (NoSuchProviderException e) {
+              e.printStackTrace();
+              osKeyStore = null;
+          }
+      }else{
+          osKeyStore = null;
       }
-      PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(winKeyStore, new X509CertSelector());
-      winPkixParams.addCertPathChecker(revocationChecker);
-      trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
-      javax.net.ssl.TrustManager[] winTM = trustManagerFactory.getTrustManagers();
-      if (winTM.length == 0)
-        throw new IllegalStateException("No trust managers found");
-      defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
-    }
+
+      if(osKeyStore != null) {
+          osKeyStore.load(null, null);  //default truststore is used.
+          try {
+              osKeyManagerFactory.init(osKeyStore, null);
+          } catch (UnrecoverableKeyException e) {
+              e.printStackTrace();
+          }
+          PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(osKeyStore, new X509CertSelector());
+          winPkixParams.addCertPathChecker(revocationChecker);
+          trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
+          javax.net.ssl.TrustManager[] winTM = trustManagerFactory.getTrustManagers();
+          if (winTM.length == 0)
+              throw new IllegalStateException("No trust managers found");
+          defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
+      }
 
 //initialize TrustManager with given truststore
       if(!trustStore.getPath().equals(Paths.get("trustStore.jks"))) {
