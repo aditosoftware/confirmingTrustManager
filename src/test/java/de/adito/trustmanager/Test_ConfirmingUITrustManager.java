@@ -1,17 +1,14 @@
 package de.adito.trustmanager;
 
-
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLContext;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -28,6 +25,10 @@ public class Test_ConfirmingUITrustManager {
 
        //Locale.setDefault(new Locale("en"));
 
+        //save trusted certificate in java truststore instead of the project
+        //String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts";
+        //SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore(Paths.get(path)));
+
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore());
         SSLContext.setDefault(sslContext);
     }
@@ -38,7 +39,6 @@ public class Test_ConfirmingUITrustManager {
         //_read(new URL("https://wrong.host.badssl.com/"));
         //_read(new URL("https://self-signed.badssl.com"));
         _read(new URL("https://untrusted-root.badssl.com/"));
-        _read(new URL("https://gitintern.aditosoftware.local"));
         //_read(new URL("https://revoked.badssl.com/"));
 
     }
