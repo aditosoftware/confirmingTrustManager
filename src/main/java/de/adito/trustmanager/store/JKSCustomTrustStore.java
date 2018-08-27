@@ -70,4 +70,12 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
             throw new RuntimeException(e);
         }
     }
+
+    public Path getPath() {
+        return path;
+    }
+
+    public KeyStore getKs() {
+        return ks;
+    }
 }

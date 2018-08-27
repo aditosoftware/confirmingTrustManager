@@ -36,6 +36,9 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     acceptedCert = false;
     countHandledTMs = 0;
 
+      System.out.println(trustStore.getPath());
+      System.out.println(trustStore.getKs());
+
     // initialize certification path checking for the offered certificates and revocation checks against CLRs
     CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
     PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -64,6 +67,17 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
     }
 
+//initialize TrustManager with given truststore
+      if(!trustStore.getPath().equals(Paths.get("trustStore.jks"))) {
+          PKIXBuilderParameters tsPkixParams = new PKIXBuilderParameters(trustStore.getKs(), new X509CertSelector());
+          tsPkixParams.addCertPathChecker(revocationChecker);
+          trustManagerFactory.init(new CertPathTrustManagerParameters(tsPkixParams));
+          javax.net.ssl.TrustManager[] tsTM = trustManagerFactory.getTrustManagers();
+          if (tsTM.length == 0)
+              throw new IllegalStateException("No trust managers found");
+
+          defaultTrustManagers.add((X509ExtendedTrustManager) tsTM[0]);
+      }
 //initialize default trustManager
     String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
     if (javaKeyStorePath == null) {

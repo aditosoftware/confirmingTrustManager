@@ -1,5 +1,7 @@
 package de.adito.trustmanager.store;
 
+import java.nio.file.Path;
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,5 +18,15 @@ public class SimpleCustomTrustStore implements ICustomTrustStore {
     @Override
     public void add(String pAlias, X509Certificate pCertificate, boolean pPersist) {
         mapping.put(pAlias, pCertificate);
+    }
+
+    @Override
+    public Path getPath() {
+        return null;
+    }
+
+    @Override
+    public KeyStore getKs() {
+        return null;
     }
 }
