@@ -1,6 +1,7 @@
 package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
+import de.adito.trustmanager.manager.OSCustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.*;
@@ -36,9 +37,6 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
     acceptedCert = false;
     countHandledTMs = 0;
 
-      System.out.println(trustStore.getPath());
-      System.out.println(trustStore.getKs());
-
     // initialize certification path checking for the offered certificates and revocation checks against CLRs
     CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
     PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -49,39 +47,10 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
             PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
-
-      KeyManagerFactory osKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      KeyStore osKeyStore;
-      if(osName.startsWith("Windows")) {
-          osKeyStore = KeyStore.getInstance("Windows-ROOT");
-      }else if(osName.startsWith("Mac")){   //this code snippet needs to be tested with a macOS
-          try {
-              osKeyStore = KeyStore.getInstance("KeychainStore", "Apple");
-          } catch (NoSuchProviderException e) {
-              osKeyStore = null;
-          }
-      }else{
-          osKeyStore = null;
-      }
-
-      if(osKeyStore != null) {
-          osKeyStore.load(null, null);  //default truststore is used.
-          try {
-              osKeyManagerFactory.init(osKeyStore, null);
-          } catch (UnrecoverableKeyException e) {
-              e.printStackTrace();
-          }
-          PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(osKeyStore, new X509CertSelector());
-          winPkixParams.addCertPathChecker(revocationChecker);
-          trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
-          javax.net.ssl.TrustManager[] osTM = trustManagerFactory.getTrustManagers();
-          if (osTM.length == 0)
-              throw new IllegalStateException("No trust managers found");
-          defaultTrustManagers.add((X509ExtendedTrustManager) osTM[0]);
-      }
+    defaultTrustManagers.add(new OSCustomTrustManager().getTrustManager());
 
 //initialize TrustManager with given truststore
-      if(!trustStore.getPath().equals(Paths.get("trustStore.jks"))) {       // only to not throw exception cause trustmanager.jks does not exist atm
+      if(false) {       // only to not throw exception cause trustmanager.jks does not exist atm
           PKIXBuilderParameters tsPkixParams = new PKIXBuilderParameters(trustStore.getKs(), new X509CertSelector());
           tsPkixParams.addCertPathChecker(revocationChecker);
           trustManagerFactory.init(new CertPathTrustManagerParameters(tsPkixParams));
@@ -163,7 +132,6 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
       } catch (CertificateException e) {
         _handleCertificateException(pChain, e, pSocket.getInetAddress().getHostName());
       }
-
     }
   }
 

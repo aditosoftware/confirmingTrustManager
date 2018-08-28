@@ -71,10 +71,12 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
         }
     }
 
+    @Override
     public Path getPath() {
         return path;
     }
 
+    @Override
     public KeyStore getKs() {
         return ks;
     }
