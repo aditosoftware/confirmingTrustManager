@@ -20,14 +20,14 @@ import java.util.*;
  * All trustManagers are initialised to throw a certificateRevokedException in case of a revoked certificate
  */
 
-public abstract class CustomTrustManager extends X509ExtendedTrustManager
+public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
 {
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
   private ICustomTrustStore trustStore;
   private boolean acceptedCert;
   private int countHandledTMs;
 
-  public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
+  public CustomTrustManagerHandler(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
@@ -54,11 +54,10 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       KeyStore osKeyStore;
       if(osName.startsWith("Windows")) {
           osKeyStore = KeyStore.getInstance("Windows-ROOT");
-      }else if(osName.startsWith("Mac")){
+      }else if(osName.startsWith("Mac")){   //this code snippet needs to be tested with a macOS
           try {
               osKeyStore = KeyStore.getInstance("KeychainStore", "Apple");
           } catch (NoSuchProviderException e) {
-              e.printStackTrace();
               osKeyStore = null;
           }
       }else{
@@ -75,14 +74,14 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
           PKIXBuilderParameters winPkixParams = new PKIXBuilderParameters(osKeyStore, new X509CertSelector());
           winPkixParams.addCertPathChecker(revocationChecker);
           trustManagerFactory.init(new CertPathTrustManagerParameters(winPkixParams));
-          javax.net.ssl.TrustManager[] winTM = trustManagerFactory.getTrustManagers();
-          if (winTM.length == 0)
+          javax.net.ssl.TrustManager[] osTM = trustManagerFactory.getTrustManagers();
+          if (osTM.length == 0)
               throw new IllegalStateException("No trust managers found");
-          defaultTrustManagers.add((X509ExtendedTrustManager) winTM[0]);
+          defaultTrustManagers.add((X509ExtendedTrustManager) osTM[0]);
       }
 
 //initialize TrustManager with given truststore
-      if(!trustStore.getPath().equals(Paths.get("trustStore.jks"))) {
+      if(!trustStore.getPath().equals(Paths.get("trustStore.jks"))) {       // only to not throw exception cause trustmanager.jks does not exist atm
           PKIXBuilderParameters tsPkixParams = new PKIXBuilderParameters(trustStore.getKs(), new X509CertSelector());
           tsPkixParams.addCertPathChecker(revocationChecker);
           trustManagerFactory.init(new CertPathTrustManagerParameters(tsPkixParams));
