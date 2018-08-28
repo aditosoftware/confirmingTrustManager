@@ -1,6 +1,5 @@
-package de.adito.trustmanager.manager;
+package de.adito.trustmanager;
 
-import de.adito.trustmanager.TrustManagerUtil;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.CertPathTrustManagerParameters;

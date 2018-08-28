@@ -1,7 +1,6 @@
 package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
-import de.adito.trustmanager.manager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.*;
