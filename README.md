@@ -11,3 +11,5 @@ expired, wrongHost, selfSigned, untrustedRoot, unknown
 
 The user can decide to trust this certificate once or permanently, which will add the certificate to the given truststore.
 If the user chooses to cancel the process, a CertificateException will be thrown.
+
+An operatingSystem specific trustStore can be added in the CustomTrustManager class

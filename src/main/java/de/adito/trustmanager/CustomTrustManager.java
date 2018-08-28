@@ -14,9 +14,21 @@ import java.security.*;
 import java.security.cert.*;
 import java.util.EnumSet;
 
+/**
+ * This class can provide different trustManager: JavaTM, OStM, customTM with truststore from eg userInput
+ */
+
 public class CustomTrustManager {
     X509ExtendedTrustManager trustManager;
 
+    /**
+     * This trustManager will use the JavaKeyStore
+     * @throws KeyStoreException
+     * @throws CertificateException
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     * @throws InvalidAlgorithmParameterException
+     */
     public CustomTrustManager() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
@@ -40,6 +52,13 @@ public class CustomTrustManager {
         trustManager = (X509ExtendedTrustManager) javaTM[0];
     }
 
+    /**
+     * This will make a trustManager with a given trustStore, eg from userInput
+     * @param pTrustStore
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidAlgorithmParameterException
+     * @throws KeyStoreException
+     */
     public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
@@ -52,10 +71,20 @@ public class CustomTrustManager {
         trustManager = (X509ExtendedTrustManager) tsTM[0];
     }
 
+    /**
+     * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, this will return null
+     * and it will not be added to the trustManagerList in CustomTrustManagerHandler
+     * @param pOsName
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws InvalidAlgorithmParameterException
+     */
     public CustomTrustManager(String pOsName) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidAlgorithmParameterException {
-
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         KeyManagerFactory osKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
         KeyStore osKeyStore;
         if (pOsName.startsWith("Windows")) {
             osKeyStore = KeyStore.getInstance("Windows-ROOT");
@@ -90,8 +119,15 @@ public class CustomTrustManager {
 
     }
 
+    /**
+     * This method enables the KeyStore to detect a revokedCertificate
+     * @param pKeyStore
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     * @throws InvalidAlgorithmParameterException
+     */
     private PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
-
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
         revocationChecker.setOptions(EnumSet.of(
