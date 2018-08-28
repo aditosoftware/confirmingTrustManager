@@ -1,15 +1,13 @@
 package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
-import de.adito.trustmanager.manager.OSCustomTrustManager;
+import de.adito.trustmanager.manager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.*;
 import java.util.*;
@@ -32,55 +30,20 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
     trustStore = pTrustStore;
-
-    String osName = System.getProperty("os.name");
     acceptedCert = false;
     countHandledTMs = 0;
 
-    // initialize certification path checking for the offered certificates and revocation checks against CLRs
-    CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-    PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-    revocationChecker.setOptions(EnumSet.of(
-            PKIXRevocationChecker.Option.PREFER_CRLS, // prefer CLR over OCSP
-            PKIXRevocationChecker.Option.ONLY_END_ENTITY,
-            PKIXRevocationChecker.Option.SOFT_FAIL, // handshake should not fail when CRL is not available
-            PKIXRevocationChecker.Option.NO_FALLBACK)); // don't fall back to OCSP checking
-    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+//initialize default trustManager
+      defaultTrustManagers.add(new CustomTrustManager().getTrustManager());
 
-    defaultTrustManagers.add(new OSCustomTrustManager().getTrustManager());
+//initialize OS truststore
+      X509ExtendedTrustManager trustManager = new CustomTrustManager(System.getProperty("os.name")).getTrustManager();
+      if(trustManager != null)
+        defaultTrustManagers.add(trustManager);
 
 //initialize TrustManager with given truststore
-      if(false) {       // only to not throw exception cause trustmanager.jks does not exist atm
-          PKIXBuilderParameters tsPkixParams = new PKIXBuilderParameters(trustStore.getKs(), new X509CertSelector());
-          tsPkixParams.addCertPathChecker(revocationChecker);
-          trustManagerFactory.init(new CertPathTrustManagerParameters(tsPkixParams));
-          javax.net.ssl.TrustManager[] tsTM = trustManagerFactory.getTrustManagers();
-          if (tsTM.length == 0)
-              throw new IllegalStateException("No trust managers found");
-
-          defaultTrustManagers.add((X509ExtendedTrustManager) tsTM[0]);
-      }
-//initialize default trustManager
-    String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
-    if (javaKeyStorePath == null) {
-      String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
-      if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
-        javaKeyStorePath = securityPath + "jssecacerts";
-      else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
-        javaKeyStorePath = securityPath + "cacerts";
-    }
-    String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
-    KeyStore JKSKeyStore = KeyStore.getInstance("JKS");
-    TrustManagerUtil.loadKeyStore(JKSKeyStore, keyStorePassword, javaKeyStorePath == null ? null : Paths.get(javaKeyStorePath));
-
-    PKIXBuilderParameters javaPkixParams = new PKIXBuilderParameters(JKSKeyStore, new X509CertSelector());
-    javaPkixParams.addCertPathChecker(revocationChecker);
-    trustManagerFactory.init(new CertPathTrustManagerParameters(javaPkixParams));
-    javax.net.ssl.TrustManager[] javaTM= trustManagerFactory.getTrustManagers();
-    if (javaTM.length == 0)
-      throw new IllegalStateException("No trust managers found");
-
-    defaultTrustManagers.add((X509ExtendedTrustManager) javaTM[0]);
+      if(Files.isRegularFile(trustStore.getPath()))
+        defaultTrustManagers.add(new CustomTrustManager(trustStore).getTrustManager());
   }
 
   public X509Certificate[] getAcceptedIssuers() {
