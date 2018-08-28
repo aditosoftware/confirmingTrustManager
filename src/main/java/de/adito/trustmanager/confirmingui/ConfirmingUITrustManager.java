@@ -15,13 +15,13 @@ import java.security.cert.*;
 
 public class ConfirmingUITrustManager extends CustomTrustManagerHandler {
 
-  private ConfirmingUITrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException,
+  private ConfirmingUITrustManager(ICustomTrustStore[] pTrustStore) throws NoSuchAlgorithmException, KeyStoreException,
       IOException, CertificateException, InvalidAlgorithmParameterException
   {
     super(pTrustStore);
   }
 
-  public static SSLContext createSslContext(ICustomTrustStore pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
+  public static SSLContext createSslContext(ICustomTrustStore[] pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
       NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
   {
     SSLContext sslContext = SSLContext.getInstance("TLS");

@@ -25,10 +25,10 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
   private boolean acceptedCert;
   private int countHandledTMs;
 
-  public CustomTrustManagerHandler(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
+  public CustomTrustManagerHandler(ICustomTrustStore[] pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
           CertificateException, InvalidAlgorithmParameterException {
     defaultTrustManagers = new ArrayList<>();
-    trustStore = pTrustStore;
+    trustStore = pTrustStore[0];
     acceptedCert = false;
     countHandledTMs = 0;
 

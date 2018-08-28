@@ -1,6 +1,8 @@
 package de.adito.trustmanager;
 
+
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
+import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -14,7 +16,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class Test_ConfirmingUITrustManager {
@@ -22,23 +23,24 @@ public class Test_ConfirmingUITrustManager {
     @BeforeAll
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException {
+        //Locale.setDefault(new Locale("en"));
 
-       //Locale.setDefault(new Locale("en"));
-
-        //save trusted certificate in java truststore instead of the project
+        //save trusted certificate in java truststore instead of the project -> needs admin rights for this example
         //String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts";
         //SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore(Paths.get(path)));
+        ICustomTrustStore[] trustStores = {new JKSCustomTrustStore()};
 
-        SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore());
+        SSLContext sslContext = ConfirmingUITrustManager.createSslContext(trustStores);
         SSLContext.setDefault(sslContext);
     }
 
     @Test
     void test() throws IOException {
-        //_read(new URL("https://expired.badssl.com/"));
-        //_read(new URL("https://wrong.host.badssl.com/"));
-        //_read(new URL("https://self-signed.badssl.com"));
+        _read(new URL("https://expired.badssl.com/"));
+        _read(new URL("https://wrong.host.badssl.com/"));
+        _read(new URL("https://self-signed.badssl.com"));
         _read(new URL("https://untrusted-root.badssl.com/"));
+
         //_read(new URL("https://revoked.badssl.com/"));
 
     }
