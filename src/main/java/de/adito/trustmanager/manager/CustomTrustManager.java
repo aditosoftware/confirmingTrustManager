@@ -19,7 +19,7 @@ import java.util.EnumSet;
  */
 
 public class CustomTrustManager {
-    X509ExtendedTrustManager trustManager;
+    private X509ExtendedTrustManager trustManager;
 
     /**
      * This trustManager will use the JavaKeyStore
@@ -122,7 +122,6 @@ public class CustomTrustManager {
     /**
      * This method enables the KeyStore to detect a revokedCertificate
      * @param pKeyStore
-     * @return
      * @throws NoSuchAlgorithmException
      * @throws KeyStoreException
      * @throws InvalidAlgorithmParameterException

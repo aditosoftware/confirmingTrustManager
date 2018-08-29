@@ -2,11 +2,13 @@ package de.adito.trustmanager.manager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
+import de.adito.trustmanager.store.JKSCustomTrustStore;
 
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.*;
 import java.util.*;
@@ -28,6 +30,7 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
   /**
    * The constructor expects an Array of ICustomTrustStore. If this array is null or does not contain an entry, a NullPointerException
    * will be thrown.
+   * The first trustStore in the array will be used to store the certificates trusted by the user
    * @param pTrustStores
    * @throws NoSuchAlgorithmException
    * @throws KeyStoreException
@@ -40,21 +43,27 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
     if(pTrustStores == null || pTrustStores.length == 0)
       throw new NullPointerException("Array is null");
 
-    defaultTrustManagers = new ArrayList<>();
-    trustStore = pTrustStores[0];
-    acceptedCert = false;
-    countHandledTMs = 0;
+      defaultTrustManagers = new ArrayList<>();
+      acceptedCert = false;
+      countHandledTMs = 0;
+
+//decide on trustStore to safe certificates and initialize it as trustManager if it is a default one
+    if(System.getProperty("javax.net.ssl.truststore") != null) {
+        trustStore = new JKSCustomTrustStore(Paths.get(System.getProperty("javax.net.ssl.truststore")));
+        defaultTrustManagers.add(new CustomTrustManager(trustStore).getTrustManager());
+    }else
+        trustStore = pTrustStores[0];
 
 //initialize OS truststore
       X509ExtendedTrustManager trustManager = new CustomTrustManager(System.getProperty("os.name")).getTrustManager();
       if(trustManager != null)
         defaultTrustManagers.add(trustManager);
 
-//initialize TrustManager with given truststore
-    for(int i = 0; i < pTrustStores.length; i++){
-      if (Files.isRegularFile(pTrustStores[i].getPath()))
-        defaultTrustManagers.add(new CustomTrustManager(pTrustStores[i]).getTrustManager());
-    }
+//initialize TrustManager with given truststores
+      for (ICustomTrustStore pTrustStore : pTrustStores) {
+          if (Files.isRegularFile(pTrustStore.getPath()))
+              defaultTrustManagers.add(new CustomTrustManager(pTrustStore).getTrustManager());
+      }
 
 //initialize default trustManager
     defaultTrustManagers.add(new CustomTrustManager().getTrustManager());
@@ -167,9 +176,9 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
 
   /**
    * This method will use the decision of the user and add the certificate permanently or only trust it once
-   * @param pChain
-   * @param pException
-   * @param pSimpleInfo
+   * @param pChain is a chain of X509Certificates
+   * @param pException is a CertificateException
+   * @param pSimpleInfo is the serverName, or null
    * @throws CertificateException
    */
   private void _tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)

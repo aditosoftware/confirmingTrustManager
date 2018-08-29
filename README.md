@@ -12,4 +12,7 @@ expired, wrongHost, selfSigned, untrustedRoot, unknown
 The user can decide to trust this certificate once or permanently, which will add the certificate to the given truststore.
 If the user chooses to cancel the process, a CertificateException will be thrown.
 
+If a SystemProperty for the truststore is set via `-Djavax.net.ssl.truststore=your/truststore/path`, it will be used as
+the truststore, which safes the permanently trusted certificates
+
 An operatingSystem specific trustStore can be added in the CustomTrustManager class
