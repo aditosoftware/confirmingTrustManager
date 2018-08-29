@@ -25,15 +25,25 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
   private boolean acceptedCert;
   private int countHandledTMs;
 
-  public CustomTrustManagerHandler(ICustomTrustStore[] pTrustStore) throws NoSuchAlgorithmException, KeyStoreException, IOException,
+  /**
+   * The constructor expects an Array of ICustomTrustStore. If this array is null or does not contain an entry, a NullPointerException
+   * will be thrown.
+   * @param pTrustStores
+   * @throws NoSuchAlgorithmException
+   * @throws KeyStoreException
+   * @throws IOException
+   * @throws CertificateException
+   * @throws InvalidAlgorithmParameterException
+   */
+  public CustomTrustManagerHandler(ICustomTrustStore[] pTrustStores) throws NoSuchAlgorithmException, KeyStoreException, IOException,
           CertificateException, InvalidAlgorithmParameterException {
+    if(pTrustStores == null || pTrustStores.length == 0)
+      throw new NullPointerException("Array is null");
+
     defaultTrustManagers = new ArrayList<>();
-    trustStore = pTrustStore[0];
+    trustStore = pTrustStores[0];
     acceptedCert = false;
     countHandledTMs = 0;
-
-//initialize default trustManager
-      defaultTrustManagers.add(new CustomTrustManager().getTrustManager());
 
 //initialize OS truststore
       X509ExtendedTrustManager trustManager = new CustomTrustManager(System.getProperty("os.name")).getTrustManager();
@@ -41,8 +51,13 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
         defaultTrustManagers.add(trustManager);
 
 //initialize TrustManager with given truststore
-      if(Files.isRegularFile(trustStore.getPath()))
-        defaultTrustManagers.add(new CustomTrustManager(trustStore).getTrustManager());
+    for(int i = 0; i < pTrustStores.length; i++){
+      if (Files.isRegularFile(pTrustStores[i].getPath()))
+        defaultTrustManagers.add(new CustomTrustManager(pTrustStores[i]).getTrustManager());
+    }
+
+//initialize default trustManager
+    defaultTrustManagers.add(new CustomTrustManager().getTrustManager());
   }
 
   public X509Certificate[] getAcceptedIssuers() {
@@ -116,9 +131,9 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
    * list, if the exception is 'untrustedRoot' or 'selfsigned'. If one of the trustManagers recognises the certificate, the
    * certificate will be trusted. Otherwise 'countHandledTMs' and 'acceptedCert' will be reseted in case of another
    * certificate check.
-   * @param pChain
-   * @param pException
-   * @param pSimpleInfo
+   * @param pChain is a chain of X509Certificates
+   * @param pException is a CertificateException
+   * @param pSimpleInfo is the serverName, or null
    * @throws CertificateException
    */
   private void _handleCertificateException(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo) throws CertificateException
