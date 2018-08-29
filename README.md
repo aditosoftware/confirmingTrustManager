@@ -9,10 +9,10 @@ A revoked certificate will always end in a RevocationException. Otherwise the di
 exceptions:
 expired, wrongHost, selfSigned, untrustedRoot, unknown
 
-The user can decide to trust this certificate once or permanently, which will add the certificate to the given truststore.
+The user can decide to trust this certificate once or permanently, which will add the certificate to a truststore.
+If a SystemProperty for the truststore is set via `-Djavax.net.ssl.truststore=your/truststore/path`, it will be used for
+that. Otherwise the first trustStore in pTrustStores[] will be used.
+
 If the user chooses to cancel the process, a CertificateException will be thrown.
 
-If a SystemProperty for the truststore is set via `-Djavax.net.ssl.truststore=your/truststore/path`, it will be used as
-the truststore, which safes the permanently trusted certificates
-
-An operatingSystem specific trustStore can be added in the CustomTrustManager class
+An operatingSystem specific trustStore can be added in the CustomTrustManager class.(Atm the implementation is only tested for windows)
