@@ -1,4 +1,4 @@
-package de.adito.trustmanager;
+package de.adito.trustmanager.manager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;

@@ -1,6 +1,6 @@
 package de.adito.trustmanager.confirmingui;
 
-import de.adito.trustmanager.CustomTrustManagerHandler;
+import de.adito.trustmanager.manager.CustomTrustManagerHandler;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.SSLContext;

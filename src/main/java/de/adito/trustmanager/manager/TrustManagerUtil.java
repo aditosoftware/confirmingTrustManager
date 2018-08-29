@@ -1,4 +1,4 @@
-package de.adito.trustmanager;
+package de.adito.trustmanager.manager;
 
 import java.io.IOException;
 import java.io.InputStream;
