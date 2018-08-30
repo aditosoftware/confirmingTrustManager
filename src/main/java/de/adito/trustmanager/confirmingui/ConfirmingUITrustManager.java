@@ -2,8 +2,10 @@ package de.adito.trustmanager.confirmingui;
 
 import de.adito.trustmanager.manager.CustomTrustManagerHandler;
 import de.adito.trustmanager.store.ICustomTrustStore;
+import de.adito.trustmanager.store.JKSCustomTrustStore;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.*;
@@ -15,17 +17,22 @@ import java.security.cert.*;
 
 public class ConfirmingUITrustManager extends CustomTrustManagerHandler {
 
-  private ConfirmingUITrustManager(ICustomTrustStore[] pTrustStore) throws NoSuchAlgorithmException, KeyStoreException,
-      IOException, CertificateException, InvalidAlgorithmParameterException
-  {
-    super(pTrustStore);
+  public ConfirmingUITrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
+    super(pTrustStore, pTrustManagers);
   }
 
-  public static SSLContext createSslContext(ICustomTrustStore[] pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
+
+  public static SSLContext createSslContext() throws CertificateException, InvalidAlgorithmParameterException,
+          NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
+  {
+    return createSslContext(new JKSCustomTrustStore());
+  }
+
+  public static SSLContext createSslContext(ICustomTrustStore pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
       NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
   {
     SSLContext sslContext = SSLContext.getInstance("TLS");
-    CustomTrustManagerHandler trustManager = new ConfirmingUITrustManager(pTrustStore);
+    CustomTrustManagerHandler trustManager = new ConfirmingUITrustManager(pTrustStore, createStandardTrustManagers());
     sslContext.init(null, new CustomTrustManagerHandler[]{trustManager}, new SecureRandom());
     return sslContext;
   }

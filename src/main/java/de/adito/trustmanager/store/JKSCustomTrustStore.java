@@ -14,25 +14,24 @@ import java.security.cert.X509Certificate;
 public class JKSCustomTrustStore implements ICustomTrustStore {
     private Path path;
     private KeyStore ks;
-    private SimpleCustomTrustStore simpleTrustStore;
+    private ICustomTrustStore simpleTrustStore;
 
-    public JKSCustomTrustStore() throws KeyStoreException {
+    public JKSCustomTrustStore() {
         this(null);
     }
 
-    public JKSCustomTrustStore(Path pPath) throws KeyStoreException {
+    public JKSCustomTrustStore(Path pPath) {
         if (pPath == null)
             pPath = Paths.get("trustStore.jks");
         path = pPath;
-        ks = KeyStore.getInstance("JKS");
-        _loadKS();
+        ks = _loadKS();
         simpleTrustStore = new SimpleCustomTrustStore();
     }
 
-    private void _loadKS() {
+    private KeyStore _loadKS() {
         try {
-            TrustManagerUtil.loadKeyStore(ks, "changeit", path);
-        } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
+            return TrustManagerUtil.loadKeyStore("changeit", path);
+        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
             throw new RuntimeException(e);
         }
     }
@@ -71,13 +70,4 @@ public class JKSCustomTrustStore implements ICustomTrustStore {
         }
     }
 
-    @Override
-    public Path getPath() {
-        return path;
-    }
-
-    @Override
-    public KeyStore getKs() {
-        return ks;
-    }
 }

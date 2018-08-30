@@ -19,6 +19,12 @@ public class TrustManagerUtil {
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
 
+    public static KeyStore loadKeyStore(String pPassword, Path pPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore jks = KeyStore.getInstance("JKS");
+        loadKeyStore(jks, pPassword, pPath);
+        return jks;
+    }
+
     public static void loadKeyStore(KeyStore pKeyStore, String pPassword, Path pPath) throws IOException, CertificateException, NoSuchAlgorithmException {
         if (pPath == null || !Files.isRegularFile(pPath))
             pKeyStore.load(null, pPassword.toCharArray());

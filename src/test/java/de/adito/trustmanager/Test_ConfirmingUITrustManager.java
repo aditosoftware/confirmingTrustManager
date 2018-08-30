@@ -1,16 +1,12 @@
 package de.adito.trustmanager;
 
-
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
-import de.adito.trustmanager.store.ICustomTrustStore;
-import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -23,14 +19,8 @@ public class Test_ConfirmingUITrustManager {
     @BeforeAll
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException {
-        //Locale.setDefault(new Locale("en"));
 
-        //save trusted certificate in java truststore instead of the project -> needs admin rights for this example
-        //String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts";
-        //SSLContext sslContext = ConfirmingUITrustManager.createSslContext(new JKSCustomTrustStore(Paths.get(path)));
-        ICustomTrustStore[] trustStores = {new JKSCustomTrustStore()};
-
-        SSLContext sslContext = ConfirmingUITrustManager.createSslContext(trustStores);
+        SSLContext sslContext = ConfirmingUITrustManager.createSslContext();
         SSLContext.setDefault(sslContext);
     }
 

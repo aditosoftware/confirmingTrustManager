@@ -1,7 +1,5 @@
 package de.adito.trustmanager.manager;
 
-import de.adito.trustmanager.store.ICustomTrustStore;
-
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -18,8 +16,11 @@ import java.util.EnumSet;
  * This class can provide different trustManager: JavaTM, OStM, customTM with truststore from eg userInput
  */
 
-public class CustomTrustManager {
-    private X509ExtendedTrustManager trustManager;
+public class TrustManagerBuilder {
+
+    private TrustManagerBuilder()
+    {
+    }
 
     /**
      * This trustManager will use the JavaKeyStore
@@ -29,8 +30,8 @@ public class CustomTrustManager {
      * @throws IOException
      * @throws InvalidAlgorithmParameterException
      */
-    public CustomTrustManager() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException {
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    public static X509ExtendedTrustManager buildDefaultJavaTrustManager()
+            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException {
 
         String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
         if (javaKeyStorePath == null) {
@@ -41,48 +42,38 @@ public class CustomTrustManager {
                 javaKeyStorePath = securityPath + "cacerts";
         }
         String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
-        KeyStore JKSKeyStore = KeyStore.getInstance("JKS");
-        TrustManagerUtil.loadKeyStore(JKSKeyStore, keyStorePassword, javaKeyStorePath == null ? null : Paths.get(javaKeyStorePath));
+        KeyStore jKSKeyStore = TrustManagerUtil.loadKeyStore(keyStorePassword, javaKeyStorePath == null ? null : Paths.get(javaKeyStorePath));
 
-        PKIXBuilderParameters javaPkixParams = _createRevocationChecker(JKSKeyStore);
-        trustManagerFactory.init(new CertPathTrustManagerParameters(javaPkixParams));
-        javax.net.ssl.TrustManager[] javaTM= trustManagerFactory.getTrustManagers();
-        if (javaTM.length == 0)
-            throw new IllegalStateException("No trust managers found");
-        trustManager = (X509ExtendedTrustManager) javaTM[0];
+        return buildDefaultJavaTrustManager(jKSKeyStore);
     }
 
     /**
      * This will make a trustManager with a given trustStore, eg from userInput
-     * @param pTrustStore
+     * @param pKeyStore
      * @throws NoSuchAlgorithmException
      * @throws InvalidAlgorithmParameterException
      * @throws KeyStoreException
      */
-    public CustomTrustManager(ICustomTrustStore pTrustStore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
+    public static X509ExtendedTrustManager buildDefaultJavaTrustManager(KeyStore pKeyStore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
-        PKIXBuilderParameters tsPkixParams = _createRevocationChecker(pTrustStore.getKs());
+        PKIXBuilderParameters tsPkixParams = _createRevocationChecker(pKeyStore);
         trustManagerFactory.init(new CertPathTrustManagerParameters(tsPkixParams));
         javax.net.ssl.TrustManager[] tsTM = trustManagerFactory.getTrustManagers();
         if (tsTM.length == 0)
             throw new IllegalStateException("No trust managers found");
 
-        trustManager = (X509ExtendedTrustManager) tsTM[0];
+        return (X509ExtendedTrustManager) tsTM[0];
     }
 
     /**
      * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, null will be returned
      * and nothing will be added to the trustManagerList in CustomTrustManagerHandler
      * @param pOsName operating system name
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
-     * @throws IOException
-     * @throws CertificateException
-     * @throws InvalidAlgorithmParameterException
      */
-    public CustomTrustManager(String pOsName) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidAlgorithmParameterException {
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    public static X509ExtendedTrustManager buildOSTrustStore(String pOsName)
+            throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidAlgorithmParameterException {
+
         KeyManagerFactory osKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
         KeyStore osKeyStore;
@@ -106,17 +97,9 @@ public class CustomTrustManager {
                 e.printStackTrace();
             }
 
-            PKIXBuilderParameters osPkixParams = _createRevocationChecker(osKeyStore);
-            trustManagerFactory.init(new CertPathTrustManagerParameters(osPkixParams));
-            javax.net.ssl.TrustManager[] osTM = trustManagerFactory.getTrustManagers();
-            if (osTM.length == 0)
-                throw new IllegalStateException("No trust managers found");
-            trustManager = (X509ExtendedTrustManager) osTM[0];
-
-        } else{
-            trustManager = null;
+            return buildDefaultJavaTrustManager(osKeyStore);
         }
-
+        return null;
     }
 
     /**
@@ -126,7 +109,7 @@ public class CustomTrustManager {
      * @throws KeyStoreException
      * @throws InvalidAlgorithmParameterException
      */
-    private PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+    private static PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
         revocationChecker.setOptions(EnumSet.of(
@@ -141,7 +124,4 @@ public class CustomTrustManager {
         return pkixParams;
     }
 
-    public X509ExtendedTrustManager getTrustManager(){
-        return trustManager;
-    }
 }

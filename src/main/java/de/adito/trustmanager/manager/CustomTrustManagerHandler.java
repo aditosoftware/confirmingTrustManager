@@ -2,12 +2,10 @@ package de.adito.trustmanager.manager;
 
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
-import de.adito.trustmanager.store.JKSCustomTrustStore;
 
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.*;
@@ -31,42 +29,47 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
    * The constructor expects an Array of ICustomTrustStores. If this array is null or does not contain an entry, a NullPointerException
    * will be thrown.
    * The first trustStore in the array will be used to store the certificates trusted by the user if there is no system property found
-   * @param pTrustStores
+   * @param pTrustStore
    * @throws NoSuchAlgorithmException
    * @throws KeyStoreException
    * @throws IOException
    * @throws CertificateException
    * @throws InvalidAlgorithmParameterException
    */
-  public CustomTrustManagerHandler(ICustomTrustStore[] pTrustStores) throws NoSuchAlgorithmException, KeyStoreException, IOException,
-          CertificateException, InvalidAlgorithmParameterException {
-    if(pTrustStores == null || pTrustStores.length == 0)
+  public CustomTrustManagerHandler(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
+    if(pTrustStore == null)
       throw new NullPointerException("Array is null");
+      trustStore = pTrustStore;
 
       defaultTrustManagers = new ArrayList<>();
+      for (X509ExtendedTrustManager pTrustManager : pTrustManagers)
+          defaultTrustManagers.add(pTrustManager);
+
       acceptedCert = false;
       countHandledTMs = 0;
+  }
 
-//decide on trustStore to safe certificates and initialize it as trustManager if it is a default one
-    if(System.getProperty("javax.net.ssl.truststore") != null) {
-        trustStore = new JKSCustomTrustStore(Paths.get(System.getProperty("javax.net.ssl.truststore")));
-        defaultTrustManagers.add(new CustomTrustManager(trustStore).getTrustManager());
-    }else
-        trustStore = pTrustStores[0];
+  public static List<X509ExtendedTrustManager> createStandardTrustManagers()
+          throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, InvalidAlgorithmParameterException {
+      List<X509ExtendedTrustManager> tms = new ArrayList<>();
 
-//initialize OS truststore
-      X509ExtendedTrustManager trustManager = new CustomTrustManager(System.getProperty("os.name")).getTrustManager();
-      if(trustManager != null)
-        defaultTrustManagers.add(trustManager);
-
-//initialize TrustManager with given trustStores
-      for (ICustomTrustStore pTrustStore : pTrustStores) {
-          if (Files.isRegularFile(pTrustStore.getPath()))
-              defaultTrustManagers.add(new CustomTrustManager(pTrustStore).getTrustManager());
+      //decide on trustStore to safe certificates and initialize it as trustManager if it is a default one
+      String trustStorePath = System.getProperty("javax.net.ssl.truststore");
+      if(trustStorePath != null) {
+          String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
+          KeyStore jks = TrustManagerUtil.loadKeyStore(pw, Paths.get(trustStorePath));
+          tms.add(TrustManagerBuilder.buildDefaultJavaTrustManager(jks));
       }
 
+//initialize OS truststore
+      X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
+      if(trustManager != null)
+          tms.add(trustManager);
+
 //initialize default trustManager
-    defaultTrustManagers.add(new CustomTrustManager().getTrustManager());
+      tms.add(TrustManagerBuilder.buildDefaultJavaTrustManager());
+
+      return tms;
   }
 
   public X509Certificate[] getAcceptedIssuers() {
