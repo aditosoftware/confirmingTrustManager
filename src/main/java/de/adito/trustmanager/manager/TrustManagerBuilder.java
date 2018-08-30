@@ -68,7 +68,7 @@ public class TrustManagerBuilder {
 
     /**
      * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, null will be returned
-     * and nothing will be added to the trustManagerList in CustomTrustManagerHandler
+     * and nothing will be added to the trustManagerList in CustomTrustManager
      * @param pOsName operating system name
      */
     public static X509ExtendedTrustManager buildOSTrustStore(String pOsName)

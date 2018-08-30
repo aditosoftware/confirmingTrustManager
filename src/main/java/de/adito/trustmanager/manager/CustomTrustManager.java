@@ -18,7 +18,7 @@ import java.util.*;
  * All trustManagers are initialised to throw a certificateRevokedException
  */
 
-public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
+public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
   private ICustomTrustStore trustStore;
@@ -36,7 +36,7 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
    * @throws CertificateException
    * @throws InvalidAlgorithmParameterException
    */
-  public CustomTrustManagerHandler(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
+  public CustomTrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
     if(pTrustStore == null)
       throw new NullPointerException("Array is null");
       trustStore = pTrustStore;

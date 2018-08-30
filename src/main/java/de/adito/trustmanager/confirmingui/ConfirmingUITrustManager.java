@@ -1,21 +1,22 @@
 package de.adito.trustmanager.confirmingui;
 
-import de.adito.trustmanager.manager.CustomTrustManagerHandler;
+import de.adito.trustmanager.manager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.*;
 
 /**
- * This class creates a SSLContext, calls CustomTrustManagerHandler, which will handle the certificateException and also prompts
+ * This class creates a SSLContext, calls CustomTrustManager, which will handle the certificateException and also prompts
  * the JDialog to be shown & interprets buttonChoice
  */
 
-public class ConfirmingUITrustManager extends CustomTrustManagerHandler {
+public class ConfirmingUITrustManager extends CustomTrustManager {
 
   public ConfirmingUITrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
     super(pTrustStore, pTrustManagers);
@@ -32,8 +33,8 @@ public class ConfirmingUITrustManager extends CustomTrustManagerHandler {
       NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
   {
     SSLContext sslContext = SSLContext.getInstance("TLS");
-    CustomTrustManagerHandler trustManager = new ConfirmingUITrustManager(pTrustStore, createStandardTrustManagers());
-    sslContext.init(null, new CustomTrustManagerHandler[]{trustManager}, new SecureRandom());
+    CustomTrustManager trustManager = new ConfirmingUITrustManager(pTrustStore, createStandardTrustManagers());
+    sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
     return sslContext;
   }
 
