@@ -16,7 +16,7 @@ import java.util.*;
 
 /**
  * This class determines the type of a thrown CertificateException and creates a unique message for the extended JDialog
- * If pSimpleInfo is null, it will be replaced with eg. "unknown server"
+ * If pSimpleInfo is null, it will be replaced with eg. "unknown server" (depending on the resource bundle)
  */
 
 public class CertificateExceptionDetail {
@@ -32,7 +32,7 @@ public class CertificateExceptionDetail {
     }
 
     /**
-     * This method determines the details of the certificateException. If Selfsigned, untrustedRoot or WrongHost Exception
+     * This method determines the details of the certificateException. If selfSigned, untrustedRoot or WrongHost Exception
      * is expired, it will be displayed in the extended message, too.
      * @param pChain
      * @param pCertificateException
@@ -111,7 +111,7 @@ public class CertificateExceptionDetail {
     }
 
     /**
-     * This method tries to to verify its certificate signature with its own public key.
+     * This method tries to verify its certificate signature with its own public key.
      * @param pCert
      * @return true if the certificate is selfSigned
      * @throws CertificateException
@@ -142,6 +142,11 @@ public class CertificateExceptionDetail {
         }
     }
 
+    /**
+     * The Date will be formatted correctly for different countries, as long as the default local makes this possible
+     * @param pDate
+     * @return a String with the date and time split by a ','
+     */
     private String _formatDate(Date pDate) {
         DateFormat dateFormat = DateFormat.getDateInstance(
                 DateFormat.FULL, Locale.getDefault());

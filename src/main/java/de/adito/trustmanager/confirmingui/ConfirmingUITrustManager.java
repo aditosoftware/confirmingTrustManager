@@ -9,8 +9,8 @@ import java.security.*;
 import java.security.cert.*;
 
 /**
- * This class calls CustomTrustManagerHandler, which will handle the certificateException, creates a SSLContext and also prompts
- * the JDialog to be shown
+ * This class creates a SSLContext, calls CustomTrustManagerHandler, which will handle the certificateException and also prompts
+ * the JDialog to be shown & interprets buttonChoice
  */
 
 public class ConfirmingUITrustManager extends CustomTrustManagerHandler {

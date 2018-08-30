@@ -72,9 +72,9 @@ public class CustomTrustManager {
     }
 
     /**
-     * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, this will return null
-     * and it will not be added to the trustManagerList in CustomTrustManagerHandler
-     * @param pOsName
+     * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, null will be returned
+     * and nothing will be added to the trustManagerList in CustomTrustManagerHandler
+     * @param pOsName operating system name
      * @throws NoSuchAlgorithmException
      * @throws KeyStoreException
      * @throws IOException

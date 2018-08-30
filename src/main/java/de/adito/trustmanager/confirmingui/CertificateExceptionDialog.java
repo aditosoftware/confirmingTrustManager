@@ -11,6 +11,7 @@ import java.util.ResourceBundle;
  * This class builds a JDialog with the before determined exceptionDetail. 'buttonChoice' will be used to decide what to do
  * with the exception in the class ConfirmingUITrustManager.
  * -1: Dialog was closed or Esc was pressed, 0: trust once, 1: trust permanently, 2: cancel
+ * -1 and 2 will end in a certificateException
  */
 
 class CertificateExceptionDialog extends JDialog {

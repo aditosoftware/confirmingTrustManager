@@ -15,9 +15,9 @@ import java.util.*;
 
 /**
  * This class initiates a list of TrustManagers to test if the Certificate is already trusted by any of these TMs. If it
- * is not trusted, the certificateException will be caught and the JDialog to decide what to do will be prompted.
+ * is not trusted, the certificateException will be caught and the JDialog will be prompted.
  * The Java trustManager will be used as default.
- * All trustManagers are initialised to throw a certificateRevokedException in case of a revoked certificate
+ * All trustManagers are initialised to throw a certificateRevokedException
  */
 
 public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
@@ -28,9 +28,9 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
   private int countHandledTMs;
 
   /**
-   * The constructor expects an Array of ICustomTrustStore. If this array is null or does not contain an entry, a NullPointerException
+   * The constructor expects an Array of ICustomTrustStores. If this array is null or does not contain an entry, a NullPointerException
    * will be thrown.
-   * The first trustStore in the array will be used to store the certificates trusted by the user
+   * The first trustStore in the array will be used to store the certificates trusted by the user if there is no system property found
    * @param pTrustStores
    * @throws NoSuchAlgorithmException
    * @throws KeyStoreException
@@ -59,7 +59,7 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
       if(trustManager != null)
         defaultTrustManagers.add(trustManager);
 
-//initialize TrustManager with given truststores
+//initialize TrustManager with given trustStores
       for (ICustomTrustStore pTrustStore : pTrustStores) {
           if (Files.isRegularFile(pTrustStore.getPath()))
               defaultTrustManagers.add(new CustomTrustManager(pTrustStore).getTrustManager());
@@ -137,9 +137,8 @@ public abstract class CustomTrustManagerHandler extends X509ExtendedTrustManager
 
   /**
    * This method first checks for a certificateRevokedException. Furthermore it will check the other trustManagers in the
-   * list, if the exception is 'untrustedRoot' or 'selfsigned'. If one of the trustManagers recognises the certificate, the
-   * certificate will be trusted. Otherwise 'countHandledTMs' and 'acceptedCert' will be reseted in case of another
-   * certificate check.
+   * list, if the exception is 'untrustedRoot' or 'selfSigned'. If one of the trustManagers recognises the certificate, the
+   * certificate will be trusted. Otherwise 'countHandledTMs' and 'acceptedCert' will be reset in case other URLS are checked, too.
    * @param pChain is a chain of X509Certificates
    * @param pException is a CertificateException
    * @param pSimpleInfo is the serverName, or null
