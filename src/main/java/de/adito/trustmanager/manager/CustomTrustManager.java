@@ -12,12 +12,11 @@ import java.security.cert.*;
 import java.util.*;
 
 /**
- * This class initiates a list of TrustManagers to test if the Certificate is already trusted by any of these TMs. If it
+ * This class initiates a list of TrustManagers to test if the certificate is already trusted by any of these TMs. If it
  * is not trusted, the certificateException will be caught and the JDialog will be prompted.
  * The Java trustManager will be used as default.
  * All trustManagers are initialised to throw a certificateRevokedException
  */
-
 public abstract class CustomTrustManager extends X509ExtendedTrustManager
 {
   private final List<X509ExtendedTrustManager> defaultTrustManagers;
@@ -26,34 +25,32 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
   private int countHandledTMs;
 
   /**
-   * The constructor expects an Array of ICustomTrustStores. If this array is null or does not contain an entry, a NullPointerException
-   * will be thrown.
-   * The first trustStore in the array will be used to store the certificates trusted by the user if there is no system property found
-   * @param pTrustStore
-   * @throws NoSuchAlgorithmException
-   * @throws KeyStoreException
-   * @throws IOException
-   * @throws CertificateException
-   * @throws InvalidAlgorithmParameterException
+   * The constructor will throw a nullPointerException if it has no trustStore to safe the trusted certificates and if
+   * there is no trustManager to validate the certificate with.
    */
   public CustomTrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
     if(pTrustStore == null)
-      throw new NullPointerException("Array is null");
-      trustStore = pTrustStore;
+      throw new NullPointerException("trustStore is null");
+    trustStore = pTrustStore;
 
-      defaultTrustManagers = new ArrayList<>();
-      for (X509ExtendedTrustManager pTrustManager : pTrustManagers)
-          defaultTrustManagers.add(pTrustManager);
+    defaultTrustManagers = new ArrayList<>();
+    for (X509ExtendedTrustManager pTrustManager : pTrustManagers)
+        defaultTrustManagers.add(pTrustManager);
 
-      acceptedCert = false;
-      countHandledTMs = 0;
+    if(defaultTrustManagers.isEmpty())
+        throw new NullPointerException("no trustManager found");
+
+    acceptedCert = false;
+    countHandledTMs = 0;
   }
 
+    /**
+     * A method to create several TrustManagers, which are needed for the constructor
+     */
   public static List<X509ExtendedTrustManager> createStandardTrustManagers()
           throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, InvalidAlgorithmParameterException {
       List<X509ExtendedTrustManager> tms = new ArrayList<>();
 
-      //decide on trustStore to safe certificates and initialize it as trustManager if it is a default one
       String trustStorePath = System.getProperty("javax.net.ssl.truststore");
       if(trustStorePath != null) {
           String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
@@ -139,13 +136,8 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
   }
 
   /**
-   * This method first checks for a certificateRevokedException. Furthermore it will check the other trustManagers in the
-   * list, if the exception is 'untrustedRoot' or 'selfSigned'. If one of the trustManagers recognises the certificate, the
-   * certificate will be trusted. Otherwise 'countHandledTMs' and 'acceptedCert' will be reset in case other URLS are checked, too.
-   * @param pChain is a chain of X509Certificates
-   * @param pException is a CertificateException
-   * @param pSimpleInfo is the serverName, or null
-   * @throws CertificateException
+   *In case of a certificateException, the other trustManagers will be tested for untrustedRoot and selfSigned. Otherwise
+   * the JDialog will be prompted.
    */
   private void _handleCertificateException(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo) throws CertificateException
   {
@@ -158,7 +150,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
         throw pException;
     }
     //get the type of the thrown exception to determine behaviour -> go to exceptionDialog or test the other trustManagers
-    ArrayList<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pException, pSimpleInfo).getTypeArray();
+    List<CertificateExceptionDetail.EType> list = CertificateExceptionDetail.createExceptionDetail(pChain, pException, pSimpleInfo).getTypes();
 
     if(defaultTrustManagers.size() != 1 && list.size() == 1 && (list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT) ||
             list.contains(CertificateExceptionDetail.EType.SELF_SIGNED))) {
@@ -178,10 +170,6 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 
   /**
    * This method will use the decision of the user and add the certificate permanently or only trust it once
-   * @param pChain is a chain of X509Certificates
-   * @param pException is a CertificateException
-   * @param pSimpleInfo is the serverName, or null
-   * @throws CertificateException
    */
   private void _tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)
       throws CertificateException

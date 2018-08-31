@@ -13,7 +13,7 @@ import java.security.cert.*;
 import java.util.EnumSet;
 
 /**
- * This class can provide different trustManager: JavaTM, OStM, customTM with truststore from eg userInput
+ * This class can provide different trustManager: JavaTM, operatingSystemTM, customTM
  */
 
 public class TrustManagerBuilder {
@@ -22,14 +22,6 @@ public class TrustManagerBuilder {
     {
     }
 
-    /**
-     * This trustManager will use the JavaKeyStore
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     * @throws InvalidAlgorithmParameterException
-     */
     public static X509ExtendedTrustManager buildDefaultJavaTrustManager()
             throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException {
 
@@ -47,13 +39,6 @@ public class TrustManagerBuilder {
         return buildDefaultJavaTrustManager(jKSKeyStore);
     }
 
-    /**
-     * This will make a trustManager with a given trustStore, eg from userInput
-     * @param pKeyStore
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidAlgorithmParameterException
-     * @throws KeyStoreException
-     */
     public static X509ExtendedTrustManager buildDefaultJavaTrustManager(KeyStore pKeyStore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
@@ -67,8 +52,8 @@ public class TrustManagerBuilder {
     }
 
     /**
-     * This will make a trustManager depending on its operatingSystem. If the operatingSystem is not supported, null will be returned
-     * and nothing will be added to the trustManagerList in CustomTrustManager
+     * This will make a trustManager depending on the operatingSystem. If the operatingSystem is not supported, null will be returned.
+     * {@link CustomTrustManager} will ignore null TMs.
      * @param pOsName operating system name
      */
     public static X509ExtendedTrustManager buildOSTrustStore(String pOsName)
@@ -79,12 +64,6 @@ public class TrustManagerBuilder {
         KeyStore osKeyStore;
         if (pOsName.startsWith("Windows")) {
             osKeyStore = KeyStore.getInstance("Windows-ROOT");
-        } else if (pOsName.startsWith("Mac")) {   //this code snippet needs to be tested with a macOS
-            try {
-                osKeyStore = KeyStore.getInstance("KeychainStore", "Apple");
-            } catch (NoSuchProviderException e) {
-                osKeyStore = null;
-            }
         } else {
             osKeyStore = null;
         }
@@ -103,11 +82,7 @@ public class TrustManagerBuilder {
     }
 
     /**
-     * This method enables the KeyStore to detect a revokedCertificate
-     * @param pKeyStore
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
-     * @throws InvalidAlgorithmParameterException
+     * The KeyStore gets enabled to detect a revoked certificate.
      */
     private static PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");

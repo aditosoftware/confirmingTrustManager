@@ -21,12 +21,12 @@ import java.util.*;
 
 public class CertificateExceptionDetail {
 
-    private ArrayList<EType> typeArray;
+    private ArrayList<EType> types;
     private X509Certificate[] chain;
     private String errorCode;
 
     private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain, String pErrorCode) {
-        this.typeArray = pType;
+        this.types = pType;
         this.chain = pChain;
         this.errorCode = pErrorCode;
     }
@@ -34,11 +34,7 @@ public class CertificateExceptionDetail {
     /**
      * This method determines the details of the certificateException. If selfSigned, untrustedRoot or WrongHost Exception
      * is expired, it will be displayed in the extended message, too.
-     * @param pChain
-     * @param pCertificateException
-     * @param pSimpleInfo
      * @return an Object with which the String for the JDialog can be built
-     * @throws CertificateException
      */
     public static CertificateExceptionDetail createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
         String errorCode = "";
@@ -78,7 +74,7 @@ public class CertificateExceptionDetail {
             pSimpleInfo = bundle.getString("simpleInfoNull");
 
         String message = bundle.getString("firstMsg") + "\n\n";
-        for(EType type : typeArray) {
+        for(EType type : types) {
             switch (type) {
                 case EXPIRED:
                     //new Date() returns current time
@@ -112,10 +108,6 @@ public class CertificateExceptionDetail {
 
     /**
      * This method tries to verify its certificate signature with its own public key.
-     * @param pCert
-     * @return true if the certificate is selfSigned
-     * @throws CertificateException
-     * @see <a href="http://www.nakov.com/blog/2009/12/01/x509-certificate-validation-in-java-build-and-verify-chain-and-verify-clr-with-bouncy-castle/">nakov.com line 99 ff</a>
      */
     private static boolean _checkIsSelfSigned(X509Certificate pCert)
             throws CertificateException {
@@ -143,9 +135,7 @@ public class CertificateExceptionDetail {
     }
 
     /**
-     * The Date will be formatted correctly for different countries, as long as the default local makes this possible
-     * @param pDate
-     * @return a String with the date and time split by a ','
+     * The Date will be formatted correctly for different countries, depending on the default locale
      */
     private String _formatDate(Date pDate) {
         DateFormat dateFormat = DateFormat.getDateInstance(
@@ -158,8 +148,6 @@ public class CertificateExceptionDetail {
 
     /**
      * This method displays a certificate's alternative DNS-Names and IP-Addresses
-     * @return a String of all DNS-Names and IP-Addresses split by a ','
-     * @see <a href="http://www.javadocexamples.com/java_source/net/sf/jguard/ext/authentication/loginmodules/CertificateLoginModule.java.html">javadocexamples.com line 118 ff</a>
      */
     private String _getSubjectAlternativeNames() {
         Collection altNames;
@@ -204,8 +192,8 @@ public class CertificateExceptionDetail {
         return names.toString();
     }
 
-    public ArrayList<EType> getTypeArray(){
-        return typeArray;
+    public List<EType> getTypes(){
+        return types;
     }
 
     public enum EType {
