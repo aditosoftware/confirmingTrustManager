@@ -1,6 +1,6 @@
 package de.adito.trustmanager.confirmingui;
 
-import de.adito.trustmanager.manager.CustomTrustManager;
+import de.adito.trustmanager.CustomTrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 

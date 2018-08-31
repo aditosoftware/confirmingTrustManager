@@ -1,4 +1,4 @@
-package de.adito.trustmanager.manager;
+package de.adito.trustmanager;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.KeyManagerFactory;

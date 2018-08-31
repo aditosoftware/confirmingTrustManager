@@ -1,6 +1,6 @@
 package de.adito.trustmanager.store;
 
-import de.adito.trustmanager.manager.TrustManagerUtil;
+import de.adito.trustmanager.TrustManagerUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
