@@ -13,19 +13,24 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-public class TrustManagerUtil {
+public class TrustManagerUtil
+{
     public static char[] HEX_DIGITS = {
             '0', '1', '2', '3', '4', '5', '6', '7',
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
 
-    public static KeyStore loadKeyStore(String pPassword, Path pPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public static KeyStore loadKeyStore(String pPassword, Path pPath)
+            throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException
+    {
         KeyStore jks = KeyStore.getInstance("JKS");
         loadKeyStore(jks, pPassword, pPath);
         return jks;
     }
 
-    public static void loadKeyStore(KeyStore pKeyStore, String pPassword, Path pPath) throws IOException, CertificateException, NoSuchAlgorithmException {
+    public static void loadKeyStore(KeyStore pKeyStore, String pPassword, Path pPath)
+            throws IOException, CertificateException, NoSuchAlgorithmException
+    {
         if (pPath == null || !Files.isRegularFile(pPath))
             pKeyStore.load(null, pPassword.toCharArray());
         else {
@@ -35,13 +40,16 @@ public class TrustManagerUtil {
         }
     }
 
-    public static void saveKeyStore(KeyStore pKeyStore, String pPassword, Path pPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public static void saveKeyStore(KeyStore pKeyStore, String pPassword, Path pPath)
+            throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException
+    {
         try (OutputStream out = Files.newOutputStream(pPath)) {
             pKeyStore.store(out, pPassword.toCharArray());
         }
     }
 
-    public static String parseDN(String dn, String field) {
+    public static String parseDN(String dn, String field)
+    {
         String[] fields = dn.split("\\s*,\\s*");
         for (String f : fields) {
             if (f.toUpperCase().startsWith(field.toUpperCase() + "=")) {
@@ -51,7 +59,8 @@ public class TrustManagerUtil {
         return null;
     }
 
-    public static String toHexString(byte[] data) {
+    public static String toHexString(byte[] data)
+    {
         StringBuilder sb = new StringBuilder();
         for (byte b : data) {
             sb.append(HEX_DIGITS[(b & 0xf0) >> 4]);
@@ -62,7 +71,8 @@ public class TrustManagerUtil {
         return sb.toString();
     }
 
-    public static String hashMD5(X509Certificate pCert) {
+    public static String hashMD5(X509Certificate pCert)
+    {
         try {
             return hash(MessageDigest.getInstance("MD5"), pCert);
         } catch (NoSuchAlgorithmException pE) {
@@ -70,7 +80,8 @@ public class TrustManagerUtil {
         }
     }
 
-    public static String hashSHA1(X509Certificate pCert) {
+    public static String hashSHA1(X509Certificate pCert)
+    {
         try {
             return hash(MessageDigest.getInstance("SHA1"), pCert);
         } catch (NoSuchAlgorithmException pE) {
@@ -78,7 +89,8 @@ public class TrustManagerUtil {
         }
     }
 
-    static String hash(MessageDigest digest, X509Certificate cert) {
+    static String hash(MessageDigest digest, X509Certificate cert)
+    {
         try {
             return toHexString(digest.digest(cert.getEncoded()));
         } catch (CertificateEncodingException e) {

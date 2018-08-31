@@ -14,7 +14,8 @@ import java.util.ResourceBundle;
  * -1 and 2 will end in a certificateException.
  */
 
-class CertificateExceptionDialog extends JDialog {
+class CertificateExceptionDialog extends JDialog
+{
 
     private JPanel extButtonPanel;
     private JScrollPane extScrollPane;
@@ -24,7 +25,8 @@ class CertificateExceptionDialog extends JDialog {
     private int buttonChoice;
     private String detailMsg;
 
-    CertificateExceptionDialog(String pDetailMessage){
+    CertificateExceptionDialog(String pDetailMessage)
+    {
         super((Frame)null, true);
         this.buttonChoice = -1;
         this.isExtended = false;
@@ -34,8 +36,8 @@ class CertificateExceptionDialog extends JDialog {
         _createFirstDialog();
     }
 
-    private void _createFirstDialog() {
-
+    private void _createFirstDialog()
+    {
         setTitle(bundle.getString("frameTitle"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new GridBagLayout());
@@ -57,11 +59,13 @@ class CertificateExceptionDialog extends JDialog {
 
         JButton extendDialog = new JButton(bundle.getString("extDialog"));
         JButton cancel = new JButton(bundle.getString("cancel"));
-        cancel.addActionListener(pEvent -> {
+        cancel.addActionListener(pEvent ->
+        {
             buttonChoice = 2;
             dispose();
         });
-        extendDialog.addActionListener(pEvent -> {
+        extendDialog.addActionListener(pEvent ->
+        {
             if (!isExtended) {
                 isExtended = true;
                 _createExtendedDialog();
@@ -93,7 +97,8 @@ class CertificateExceptionDialog extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    private void _createExtendedDialog() {
+    private void _createExtendedDialog()
+    {
         //Text Handling
         JTextArea extendedDialog = new JTextArea(detailMsg);
         extendedDialog.setEditable(false);
@@ -111,11 +116,13 @@ class CertificateExceptionDialog extends JDialog {
         //Button Handling
         JButton trust = new JButton(bundle.getString("trust"));
         JButton trustOnce = new JButton(bundle.getString("trustOnce"));
-        trust.addActionListener(pEvent -> {
+        trust.addActionListener(pEvent ->
+        {
             buttonChoice = 1;
             dispose();
         });
-        trustOnce.addActionListener(pEvent ->{
+        trustOnce.addActionListener(pEvent ->
+        {
             buttonChoice = 0;
             dispose();
         });
@@ -139,16 +146,17 @@ class CertificateExceptionDialog extends JDialog {
 
     }
 
-    private void _hideExtendedDialog() {
+    private void _hideExtendedDialog()
+    {
         remove(extScrollPane);
         remove(extButtonPanel);
         pack();
         validate();
         repaint();
-
     }
 
-    int getButtonChoice() {
+    int getButtonChoice()
+    {
         return buttonChoice;
     }
 }

@@ -15,9 +15,11 @@ import java.security.cert.*;
  * This class creates a SSLContext and implements checkCertificateAndShouldPersist used in {@link CustomTrustManager}
  */
 
-public class ConfirmingUITrustManager extends CustomTrustManager {
+public class ConfirmingUITrustManager extends CustomTrustManager
+{
 
-  public ConfirmingUITrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
+  public ConfirmingUITrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers)
+  {
     super(pTrustStore, pTrustManagers);
   }
 
@@ -41,8 +43,8 @@ public class ConfirmingUITrustManager extends CustomTrustManager {
    * This method handles the JDialog and its return value
    */
   protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pCertExc, String pSimpleInfo)
-          throws CertificateException {
-
+          throws CertificateException
+  {
     CertificateExceptionDetail certExcDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
     String detailMessage = certExcDetail.makeExceptionMessage(pSimpleInfo);
 

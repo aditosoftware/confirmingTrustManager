@@ -19,13 +19,15 @@ import java.util.*;
  * If pSimpleInfo is null, it will be replaced with eg. "unknown server" (depending on the resource bundle)
  */
 
-public class CertificateExceptionDetail {
+public class CertificateExceptionDetail
+{
 
     private ArrayList<EType> types;
     private X509Certificate[] chain;
     private String errorCode;
 
-    private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain, String pErrorCode) {
+    private CertificateExceptionDetail(ArrayList<EType> pType, X509Certificate[] pChain, String pErrorCode)
+    {
         this.types = pType;
         this.chain = pChain;
         this.errorCode = pErrorCode;
@@ -36,7 +38,9 @@ public class CertificateExceptionDetail {
      * is expired, it will be displayed in the extended message, too.
      * @return an Object with which the String for the JDialog can be built
      */
-    public static CertificateExceptionDetail createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo) throws CertificateException {
+    public static CertificateExceptionDetail createExceptionDetail(X509Certificate[] pChain, CertificateException pCertificateException, String pSimpleInfo)
+            throws CertificateException
+    {
         String errorCode = "";
         ArrayList<EType> typeArray = new ArrayList<>();
 
@@ -68,7 +72,8 @@ public class CertificateExceptionDetail {
         return new CertificateExceptionDetail(typeArray, pChain, errorCode);
     }
 
-    String makeExceptionMessage(String pSimpleInfo) {
+    String makeExceptionMessage(String pSimpleInfo)
+    {
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         if(pSimpleInfo == null)
             pSimpleInfo = bundle.getString("simpleInfoNull");
@@ -110,7 +115,8 @@ public class CertificateExceptionDetail {
      * This method tries to verify its certificate signature with its own public key.
      */
     private static boolean _checkIsSelfSigned(X509Certificate pCert)
-            throws CertificateException {
+            throws CertificateException
+    {
         try {
             pCert.verify(pCert.getPublicKey());
             return true;
@@ -125,11 +131,13 @@ public class CertificateExceptionDetail {
         }
     }
 
-    private static boolean _checkHostname(String pHostname, X509Certificate[] pChain){
-        try {
+    private static boolean _checkHostname(String pHostname, X509Certificate[] pChain)
+    {
+        try
+        {
             HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(pHostname, pChain[0]);
             return true;
-        } catch (CertificateException exc){
+        } catch (CertificateException exc) {
             return false;
         }
     }
@@ -137,11 +145,10 @@ public class CertificateExceptionDetail {
     /**
      * The Date will be formatted correctly for different countries, depending on the default locale
      */
-    private String _formatDate(Date pDate) {
-        DateFormat dateFormat = DateFormat.getDateInstance(
-                DateFormat.FULL, Locale.getDefault());
-        DateFormat timeFormat = DateFormat.getTimeInstance(
-                DateFormat.DEFAULT, Locale.getDefault());
+    private String _formatDate(Date pDate)
+    {
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault());
+        DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
 
         return dateFormat.format(pDate) + ", " + timeFormat.format(pDate);
     }
@@ -149,28 +156,29 @@ public class CertificateExceptionDetail {
     /**
      * This method displays a certificate's alternative DNS-Names and IP-Addresses
      */
-    private String _getSubjectAlternativeNames() {
+    private String _getSubjectAlternativeNames()
+    {
         Collection altNames;
-        try {
+        try
+        {
             altNames = chain[0].getSubjectAlternativeNames();
         } catch (CertificateParsingException e) {
             return "";
         }
 
-        if(altNames == null){
+        if(altNames == null)
             return "";
-        }
 
         Iterator itAltNames = altNames.iterator();
         StringBuilder names = new StringBuilder();
-        while (itAltNames.hasNext()) {
+        while (itAltNames.hasNext())
+        {
             List extensionEntry = (List) itAltNames.next();
             //nameType:  2 is DNS, 7 is IP
             Integer nameType = (Integer) extensionEntry.get(0);
             //if nameType is 2, extensionEntry is DNS and returned as String
-            if(nameType == 2) {
+            if(nameType == 2)
                 names.append((String) extensionEntry.get(1));
-            }
 
             //if nameType is 7, extensionEntry is IP and returned as byteArray
             if(nameType == 7){
@@ -184,19 +192,19 @@ public class CertificateExceptionDetail {
                 }
             }
 
-            if(itAltNames.hasNext()){
+            if(itAltNames.hasNext())
                 names.append(", ");
-            }
         }
-
         return names.toString();
     }
 
-    public List<EType> getTypes(){
+    public List<EType> getTypes()
+    {
         return types;
     }
 
-    public enum EType {
+    public enum EType
+    {
         EXPIRED,
         WRONG_HOST,
         SELF_SIGNED,

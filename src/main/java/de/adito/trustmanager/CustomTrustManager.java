@@ -28,7 +28,8 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
    * The constructor will throw a nullPointerException if it has no trustStore to safe the trusted certificates and if
    * there is no trustManager to validate the certificate with.
    */
-  public CustomTrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers) {
+  public CustomTrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers)
+  {
     if(pTrustStore == null)
       throw new NullPointerException("trustStore is null");
     trustStore = pTrustStore;
@@ -48,11 +49,13 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
      * A method to create several TrustManagers, which are needed for the constructor
      */
   public static List<X509ExtendedTrustManager> createStandardTrustManagers()
-          throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, InvalidAlgorithmParameterException {
+          throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, InvalidAlgorithmParameterException
+  {
       List<X509ExtendedTrustManager> tms = new ArrayList<>();
 
       String trustStorePath = System.getProperty("javax.net.ssl.truststore");
-      if(trustStorePath != null) {
+      if(trustStorePath != null)
+      {
           String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
           KeyStore jks = TrustManagerUtil.loadKeyStore(pw, Paths.get(trustStorePath));
           tms.add(TrustManagerBuilder.buildDefaultJavaTrustManager(jks));
@@ -154,9 +157,9 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
 
     if(defaultTrustManagers.size() != 1 && list.size() == 1 && (list.contains(CertificateExceptionDetail.EType.UNTRUSTED_ROOT) ||
             list.contains(CertificateExceptionDetail.EType.SELF_SIGNED))) {
-        if (acceptedCert){//if there is more than one trustManager, but one already recognized the certificate
+        if (acceptedCert)//if there is more than one trustManager, but one already recognized the certificate
             return;
-        }
+
         if(countHandledTMs < defaultTrustManagers.size() - 1){//keep track of number of already tested trustManagers. if all don't accept the cert, the exceptionDialog will appear
             countHandledTMs++;
             return;

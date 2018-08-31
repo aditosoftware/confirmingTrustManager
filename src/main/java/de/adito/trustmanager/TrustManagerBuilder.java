@@ -23,8 +23,8 @@ public class TrustManagerBuilder {
     }
 
     public static X509ExtendedTrustManager buildDefaultJavaTrustManager()
-            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException {
-
+            throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException
+    {
         String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
         if (javaKeyStorePath == null) {
             String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
@@ -39,7 +39,9 @@ public class TrustManagerBuilder {
         return buildDefaultJavaTrustManager(jKSKeyStore);
     }
 
-    public static X509ExtendedTrustManager buildDefaultJavaTrustManager(KeyStore pKeyStore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
+    public static X509ExtendedTrustManager buildDefaultJavaTrustManager(KeyStore pKeyStore)
+            throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException
+    {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
         PKIXBuilderParameters tsPkixParams = _createRevocationChecker(pKeyStore);
@@ -57,16 +59,15 @@ public class TrustManagerBuilder {
      * @param pOsName operating system name
      */
     public static X509ExtendedTrustManager buildOSTrustStore(String pOsName)
-            throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidAlgorithmParameterException {
-
+            throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, InvalidAlgorithmParameterException
+    {
         KeyManagerFactory osKeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
         KeyStore osKeyStore;
-        if (pOsName.startsWith("Windows")) {
+        if (pOsName.startsWith("Windows"))
             osKeyStore = KeyStore.getInstance("Windows-ROOT");
-        } else {
+        else
             osKeyStore = null;
-        }
 
         if (osKeyStore != null) {
             osKeyStore.load(null, null);  //default truststore is used.
@@ -84,7 +85,9 @@ public class TrustManagerBuilder {
     /**
      * The KeyStore gets enabled to detect a revoked certificate.
      */
-    private static PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+    private static PKIXBuilderParameters _createRevocationChecker(KeyStore pKeyStore)
+            throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException
+    {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
         revocationChecker.setOptions(EnumSet.of(
@@ -98,5 +101,4 @@ public class TrustManagerBuilder {
 
         return pkixParams;
     }
-
 }
