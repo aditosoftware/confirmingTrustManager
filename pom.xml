@@ -8,6 +8,21 @@
     <artifactId>trustmanager</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>A implementation to check certificateException and let the user decide how to handle them</description>
+    <url>https://github.com/aditosoftware/confirmingTrustManager</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>LICENSE.md</url>
+        </license>
+    </licenses>
+
+    <!--TODO-->
+    <developers>
+
+    </developers>
 
     <dependencies>
         <dependency>
