@@ -3,16 +3,17 @@ package de.adito.trustmanager;
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
+
+
 
 public class Test_ConfirmingUITrustManager {
 
@@ -25,20 +26,38 @@ public class Test_ConfirmingUITrustManager {
     }
 
     @Test
-    void test() throws IOException {
+    void testExpired() throws IOException
+    {
         _read(new URL("https://expired.badssl.com/"));
-        _read(new URL("https://wrong.host.badssl.com/"));
-        _read(new URL("https://self-signed.badssl.com"));
-        _read(new URL("https://untrusted-root.badssl.com/"));
-
-        //_read(new URL("https://revoked.badssl.com/"));
-
+        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.EXPIRED}, result);
     }
 
-    private String _read(URL pUrl) throws IOException {
-        try (InputStream inputStream = pUrl.openConnection().getInputStream()) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            return reader.lines().collect(Collectors.joining("\n"));
-        }
+    @Test
+    void testWrongHost() throws IOException
+    {
+        _read(new URL("https://wrong.host.badssl.com/"));
+        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, result);
+    }
+
+    @Test
+    void testSelfSigned() throws IOException
+    {
+        _read(new URL("https://self-signed.badssl.com"));
+        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, result);
+    }
+
+    @Test
+    void testUntrustedRoot() throws IOException
+    {
+        _read(new URL("https://untrusted-root.badssl.com/"));
+        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, result);
+    }
+
+    @Test
+    void testRevoked() {
+        try {
+            _read(new URL("https://revoked.badssl.com/"));
+            fail("CertificateRevokedException not thrown");
+        }catch(Exception exc){}
     }
 }
