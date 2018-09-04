@@ -18,8 +18,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
 
-
-
 public class Test_BadsslURLs {
 
     private static CertificateExceptionDetail.EType[] result;
@@ -68,25 +66,37 @@ public class Test_BadsslURLs {
     void testWrongHost() throws IOException
     {
         _read(new URL("https://wrong.host.badssl.com/"));
-        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, result);
+        if(result.length == 1)
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, result);
+        else
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST,
+                    CertificateExceptionDetail.EType.EXPIRED}, result);
     }
 
     @Test
     void testSelfSigned() throws IOException
     {
         _read(new URL("https://self-signed.badssl.com"));
-        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, result);
+        if(result.length == 1)
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, result);
+        else
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED,
+                    CertificateExceptionDetail.EType.EXPIRED}, result);
     }
 
     @Test
     void testUntrustedRoot() throws IOException
     {
         _read(new URL("https://untrusted-root.badssl.com/"));
-        Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, result);
+        if(result.length == 1)
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, result);
+        else
+            Assertions.assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT,
+                    CertificateExceptionDetail.EType.EXPIRED}, result);
     }
 
     @Test
-    void testRevoked() {
+    void testRevoked(){
         try {
             _read(new URL("https://revoked.badssl.com/"));
             fail("CertificateRevokedException not thrown");
