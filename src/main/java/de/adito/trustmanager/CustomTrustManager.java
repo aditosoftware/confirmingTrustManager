@@ -58,7 +58,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
       {
           String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
           KeyStore jks = TrustManagerUtil.loadKeyStore(pw, Paths.get(trustStorePath));
-          tms.add(TrustManagerBuilder.buildDefaultJavaTrustManager(jks));
+          tms.add(TrustManagerBuilder.buildDefaultTrustManager(jks));
       }
 
 //initialize OS truststore
@@ -67,7 +67,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
           tms.add(trustManager);
 
 //initialize default trustManager
-      tms.add(TrustManagerBuilder.buildDefaultJavaTrustManager());
+      tms.add(TrustManagerBuilder.buildDefaultTrustManager());
 
       return tms;
   }

@@ -22,7 +22,7 @@ public class TrustManagerBuilder {
     {
     }
 
-    public static X509ExtendedTrustManager buildDefaultJavaTrustManager()
+    public static X509ExtendedTrustManager buildDefaultTrustManager()
             throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException
     {
         String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
@@ -36,10 +36,10 @@ public class TrustManagerBuilder {
         String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
         KeyStore jKSKeyStore = TrustManagerUtil.loadKeyStore(keyStorePassword, javaKeyStorePath == null ? null : Paths.get(javaKeyStorePath));
 
-        return buildDefaultJavaTrustManager(jKSKeyStore);
+        return buildDefaultTrustManager(jKSKeyStore);
     }
 
-    public static X509ExtendedTrustManager buildDefaultJavaTrustManager(KeyStore pKeyStore)
+    public static X509ExtendedTrustManager buildDefaultTrustManager(KeyStore pKeyStore)
             throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException
     {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -77,7 +77,7 @@ public class TrustManagerBuilder {
                 e.printStackTrace();
             }
 
-            return buildDefaultJavaTrustManager(osKeyStore);
+            return buildDefaultTrustManager(osKeyStore);
         }
         return null;
     }
