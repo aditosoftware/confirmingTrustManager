@@ -20,7 +20,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.stream.Collectors;
 
-public class Test_BadsslURLs {
+public class Test_ConfirmingTrustManagerWithURL {
 
     private static CertificateExceptionDetail.EType[] result;
 
