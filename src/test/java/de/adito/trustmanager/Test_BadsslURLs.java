@@ -6,8 +6,10 @@ import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.mockito.Mockito.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -35,8 +37,6 @@ public class Test_BadsslURLs {
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
-        LookAndFeel.setLookAndFeel();
-        //Locale.setDefault(new Locale("en"));
         //SSLContext sslContext = ConfirmingUITrustManager.createSslContext(); //old initiator
 
         ICustomTrustStore trustStore = new JKSCustomTrustStore();
@@ -53,6 +53,12 @@ public class Test_BadsslURLs {
         sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
 
         SSLContext.setDefault(sslContext);
+    }
+
+    @BeforeEach
+    public void resetResult()
+    {
+        result = null;
     }
 
     @Test
@@ -99,7 +105,14 @@ public class Test_BadsslURLs {
     void testRevoked(){
         try {
             _read(new URL("https://revoked.badssl.com/"));
-            fail("CertificateRevokedException not thrown");
+            fail("Expected CertificateRevokedException not thrown");
         }catch(Exception exc){}
+    }
+
+    @Test
+    void testTrustedURL() throws IOException
+    {
+        _read(new URL("https://www.google.com"));
+        Assertions.assertArrayEquals(null, result);
     }
 }
