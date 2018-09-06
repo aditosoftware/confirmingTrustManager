@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class Test_ConfirmingTrustManagerWithURL {
+public class Test_CertificateExceptionDetail {
 
     private static CertificateExceptionDetail.EType[] result;
 
