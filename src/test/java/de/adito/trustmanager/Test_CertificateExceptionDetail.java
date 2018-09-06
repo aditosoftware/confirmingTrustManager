@@ -81,9 +81,8 @@ public class Test_CertificateExceptionDetail {
     @Test
     public void testWrongHost() throws IOException
     {
-        if(resultWrongHost == null)
-            _read(new URL("https://wrong.host.badssl.com/"));
-        else
+        _read(new URL("https://wrong.host.badssl.com/"));
+        if(resultETypes == null)
             resultETypes = resultWrongHost;
 
         if(resultETypes.length == 1)

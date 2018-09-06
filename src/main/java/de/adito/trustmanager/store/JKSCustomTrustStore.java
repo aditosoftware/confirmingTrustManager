@@ -11,6 +11,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * This class creates a simple trustStore to permanently safe trustedCertificates in the given path or working directory.
+ * For volatile trusted certificate, simpleTrustStore is used. For further information on simpleTrustStore refer to
+ * {@link SimpleCustomTrustStore}.
+ */
 public class JKSCustomTrustStore implements ICustomTrustStore
 {
     private Path path;
@@ -68,6 +73,11 @@ public class JKSCustomTrustStore implements ICustomTrustStore
         }
     }
 
+    /**
+     * The certificate will be added to a permanent file, if pPersist is true. Otherwise it will be saved in a map in
+     * simpleTrustStore
+     * @param pAlias A alias name to be able to differentiate the certificates after saving them in a file
+     */
     @Override
     public synchronized void add(String pAlias, X509Certificate pCertificate, boolean pPersist)
     {
