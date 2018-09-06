@@ -21,7 +21,6 @@ import java.util.*;
 
 public class CertificateExceptionDetail
 {
-
     private ArrayList<EType> types;
     private X509Certificate[] chain;
     private String errorCode;
@@ -72,7 +71,7 @@ public class CertificateExceptionDetail
         return new CertificateExceptionDetail(typeArray, pChain, errorCode);
     }
 
-    String makeExceptionMessage(String pSimpleInfo)
+    public String makeExceptionMessage(String pSimpleInfo)
     {
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         if(pSimpleInfo == null)
@@ -183,7 +182,6 @@ public class CertificateExceptionDetail
             //if nameType is 7, extensionEntry is IP and returned as byteArray
             if(nameType == 7){
                 //handle byteArray with ASN.1 decoder
-                //code not yet tested
                 try {
                     Oid oid = new Oid((byte[]) extensionEntry.get(1));
                     names.append(oid.toString());

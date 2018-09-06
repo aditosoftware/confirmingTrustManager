@@ -17,14 +17,17 @@ import java.net.URL;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Test_CertificateExceptionDetail {
 
-    private static CertificateExceptionDetail.EType[] result;
+    private static CertificateExceptionDetail.EType[] resultETypes;
+    private static String resultString;
+    private static CertificateExceptionDetail.EType[] resultWrongHost;
 
     private String _read(URL pUrl) throws IOException
     {
@@ -36,16 +39,23 @@ public class Test_CertificateExceptionDetail {
     }
 
     @BeforeAll
-    static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+    public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
+        resultString = null;
+        resultWrongHost = null;
         ICustomTrustStore trustStore = new JKSCustomTrustStore();
         CustomTrustManager trustManager = new CustomTrustManager(trustStore, CustomTrustManager.createStandardTrustManagers())
         {
             @Override
             protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo) throws CertificateException {
                 CertificateExceptionDetail exceptionDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo);
-                result = exceptionDetail.getTypes().toArray(new CertificateExceptionDetail.EType[0]);
+                resultETypes = exceptionDetail.getTypes().toArray(new CertificateExceptionDetail.EType[0]);
+                if(resultETypes[0] == CertificateExceptionDetail.EType.WRONG_HOST)
+                {
+                    resultWrongHost = resultETypes;
+                    resultString = exceptionDetail.makeExceptionMessage(pSimpleInfo);
+                }
                 return false;
             }
         };
@@ -58,51 +68,55 @@ public class Test_CertificateExceptionDetail {
     @BeforeEach
     public void resetResult()
     {
-        result = null;
+        resultETypes = null;
     }
 
     @Test
-    void testExpired() throws IOException
+    public void testExpired() throws IOException
     {
         _read(new URL("https://expired.badssl.com/"));
-        assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.EXPIRED}, result);
+        assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
 
     @Test
-    void testWrongHost() throws IOException
+    public void testWrongHost() throws IOException
     {
-        _read(new URL("https://wrong.host.badssl.com/"));
-        if(result.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, result);
+        if(resultWrongHost == null)
+            _read(new URL("https://wrong.host.badssl.com/"));
+        else
+            resultETypes = resultWrongHost;
+
+        if(resultETypes.length == 1)
+            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, resultETypes);
         else
             assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST,
-                    CertificateExceptionDetail.EType.EXPIRED}, result);
+                    CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
 
     @Test
-    void testSelfSigned() throws IOException
+    public void testSelfSigned() throws IOException
     {
         _read(new URL("https://self-signed.badssl.com"));
-        if(result.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, result);
+        if(resultETypes.length == 1)
+            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, resultETypes);
         else
             assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED,
-                    CertificateExceptionDetail.EType.EXPIRED}, result);
+                    CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
 
     @Test
-    void testUntrustedRoot() throws IOException
+    public void testUntrustedRoot() throws IOException
     {
         _read(new URL("https://untrusted-root.badssl.com/"));
-        if(result.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, result);
+        if(resultETypes.length == 1)
+            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, resultETypes);
         else
             assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT,
-                    CertificateExceptionDetail.EType.EXPIRED}, result);
+                    CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
 
     @Test
-    void testRevoked()
+    public void testRevoked()
     {
         try {
             _read(new URL("https://revoked.badssl.com/"));
@@ -111,9 +125,20 @@ public class Test_CertificateExceptionDetail {
     }
 
     @Test
-    void testTrustedURL() throws IOException
+    public void testTrustedURL() throws IOException
     {
         _read(new URL("https://www.google.com"));
-        assertArrayEquals(null, result);
+        assertArrayEquals(null, resultETypes);
+    }
+
+    @Test
+    public void testSubjectAlternativeNames() throws IOException
+    {
+        if(resultWrongHost == null)
+            _read(new URL("https://wrong.host.badssl.com/"));
+
+        ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
+        String testString = bundle.getString("firstMsg") + "\n\n" + bundle.getString("wrongHost") + "\n\n";
+        assertTrue(testString.length() < resultString.length(), "No SubjectAlternativeNames found");
     }
 }
