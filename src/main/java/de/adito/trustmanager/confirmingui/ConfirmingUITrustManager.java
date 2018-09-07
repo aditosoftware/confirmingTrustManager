@@ -14,7 +14,6 @@ import java.security.cert.*;
 /**
  * This class creates a SSLContext and implements checkCertificateAndShouldPersist used in {@link CustomTrustManager}
  */
-
 public class ConfirmingUITrustManager extends CustomTrustManager
 {
 
@@ -22,7 +21,6 @@ public class ConfirmingUITrustManager extends CustomTrustManager
   {
     super(pTrustStore, pTrustManagers);
   }
-
 
   public static SSLContext createSslContext() throws CertificateException, InvalidAlgorithmParameterException,
           NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
@@ -47,11 +45,8 @@ public class ConfirmingUITrustManager extends CustomTrustManager
   {
     CertificateExceptionDetail certExcDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pCertExc, pSimpleInfo);
     String detailMessage = certExcDetail.makeExceptionMessage(pSimpleInfo);
-
-    CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(detailMessage);
-    certExceptionDialog.setVisible(true);
-
-    int r = certExceptionDialog.getButtonChoice();  //returns selected button as int
+    
+    int r = _createDialog(detailMessage);  //returns selected button as int
     switch (r){    // Will decide to trust or not trust the certificate
       case 0:       //trust once
         return false;
@@ -60,5 +55,12 @@ public class ConfirmingUITrustManager extends CustomTrustManager
       default:
         throw pCertExc;  //cancel
     }
+  }
+  private int _createDialog(String pDetailMessage)
+  {
+      CertificateExceptionDialog certExceptionDialog = new CertificateExceptionDialog(pDetailMessage);
+      certExceptionDialog.setVisible(true);
+    
+      return certExceptionDialog.getButtonChoice();
   }
 }
