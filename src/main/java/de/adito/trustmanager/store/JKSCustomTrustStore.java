@@ -83,7 +83,8 @@ public class JKSCustomTrustStore implements ICustomTrustStore
     {
         try
         {
-            if (pPersist) {
+            if (pPersist)
+            {
                 ks.setCertificateEntry(pAlias, pCertificate);
                 _saveKS();
             } else
