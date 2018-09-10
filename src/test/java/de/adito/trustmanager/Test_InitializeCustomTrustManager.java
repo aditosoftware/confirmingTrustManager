@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class Test_CustomTrustManager
+public class Test_InitializeCustomTrustManager
 {
     @BeforeEach
     public void setUp(){
@@ -99,13 +99,5 @@ public class Test_CustomTrustManager
         //for not implemented Operating Systems
         else
             assertTrue("Expected two trustManagers", tms.size() == 2);
-    }
-    
-    @Test
-    public void testCheckServerTrusted()
-    {
-        //_handle certificateException works
-        //all TMs are tested
-        //try custom trustManager
     }
 }
