@@ -15,8 +15,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class Test_InitializeCustomTrustManager
 {
@@ -95,9 +94,9 @@ public class Test_InitializeCustomTrustManager
         ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
         
         if(System.getProperty("os.name").contains("Windows"))
-            assertTrue("Expected three trustManagers", tms.size() == 3);
+            assertEquals("Expected three trustManagers", 3, tms.size());
         //for not implemented Operating Systems
         else
-            assertTrue("Expected two trustManagers", tms.size() == 2);
+            assertEquals("Expected two trustManagers", 2, tms.size());
     }
 }
