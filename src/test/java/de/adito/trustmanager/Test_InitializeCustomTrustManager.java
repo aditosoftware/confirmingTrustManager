@@ -1,5 +1,6 @@
 package de.adito.trustmanager;
 
+import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,13 +10,14 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Test_InitializeCustomTrustManager
 {
@@ -40,6 +42,19 @@ public class Test_InitializeCustomTrustManager
                     return false;
                 }
             };
+            fail("Expected NullPointerException");
+        } catch (NullPointerException exc)
+        {
+        }
+    }
+    
+    @Test
+    public void testCreateSslContextTrustStoreNull()
+            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, InvalidAlgorithmParameterException, IOException
+    {
+        try
+        {
+            ConfirmingUITrustManager.createSslContext(null);
             fail("Expected NullPointerException");
         } catch (NullPointerException exc)
         {
@@ -94,7 +109,7 @@ public class Test_InitializeCustomTrustManager
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
         ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
-        assertTrue("TrustManagerList cannot be empty", !tms.isEmpty());
+        assertTrue(!tms.isEmpty(), "TrustManagerList cannot be empty");
     }
     
     @Test
@@ -106,9 +121,9 @@ public class Test_InitializeCustomTrustManager
         ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
         
         if (System.getProperty("os.name").contains("Windows"))
-            assertEquals("Expected three trustManagers", 3, tms.size());
-            //for not implemented Operating Systems
+            assertEquals(3, tms.size(), "Expected three trustManagers");
+            //for not implemented Operating Systems, if this fails, maybe a new test for another OS needs to be implemented
         else
-            assertEquals("Expected two trustManagers", 2, tms.size());
+            assertEquals(2, tms.size(), "Expected two trustManagers");
     }
 }
