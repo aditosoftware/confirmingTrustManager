@@ -3,6 +3,7 @@ package de.adito.trustmanager;
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,8 +15,9 @@ import java.security.cert.CertificateException;
 
 import java.util.stream.Collectors;
 
-public class Test_showJDialog {
-
+public class Test_showJDialog
+{
+    
     @BeforeAll
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
@@ -24,7 +26,7 @@ public class Test_showJDialog {
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext();
         SSLContext.setDefault(sslContext);
     }
-
+    
     @Test
     void test() throws IOException
     {
@@ -33,7 +35,7 @@ public class Test_showJDialog {
         _read(new URL("https://self-signed.badssl.com"));
         _read(new URL("https://untrusted-root.badssl.com/"));
     }
-
+    
     private String _read(URL pUrl) throws IOException
     {
         try (InputStream inputStream = pUrl.openConnection().getInputStream())

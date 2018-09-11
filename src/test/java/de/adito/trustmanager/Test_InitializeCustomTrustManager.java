@@ -20,25 +20,30 @@ import static org.junit.Assert.*;
 public class Test_InitializeCustomTrustManager
 {
     @BeforeEach
-    public void setUp(){
+    public void setUp()
+    {
         System.clearProperty("javax.net.ssl.trustStore");
     }
     
     //Test Constructor
     @Test
-    public void testConstructorTrustStoreNull(){
+    public void testConstructorTrustStoreNull()
+    {
         Iterable iterableMock = Mockito.mock(Iterable.class);
         try
         {
             new CustomTrustManager(null, iterableMock)
             {
                 @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo) {
+                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
+                {
                     return false;
                 }
             };
             fail("Expected NullPointerException");
-        }catch(NullPointerException exc) {}
+        } catch (NullPointerException exc)
+        {
+        }
     }
     
     @Test
@@ -50,12 +55,15 @@ public class Test_InitializeCustomTrustManager
             new CustomTrustManager(trustStoreMock, null)
             {
                 @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo) {
+                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
+                {
                     return false;
                 }
             };
             fail("Expected NullPointerException");
-        }catch(NullPointerException exc){}
+        } catch (NullPointerException exc)
+        {
+        }
     }
     
     @Test
@@ -65,15 +73,19 @@ public class Test_InitializeCustomTrustManager
         
         try
         {
-            new CustomTrustManager(trustStoreMock, new ArrayList<>()) {
+            new CustomTrustManager(trustStoreMock, new ArrayList<>())
+            {
                 @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo){
+                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
+                {
                     return false;
                 }
             };
             fail("Expected NullPointerException");
             
-        }catch(NullPointerException exc){}
+        } catch (NullPointerException exc)
+        {
+        }
     }
     
     //other tests
@@ -93,9 +105,9 @@ public class Test_InitializeCustomTrustManager
         System.setProperty("javax.net.ssl.truststore", path);
         ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
         
-        if(System.getProperty("os.name").contains("Windows"))
+        if (System.getProperty("os.name").contains("Windows"))
             assertEquals("Expected three trustManagers", 3, tms.size());
-        //for not implemented Operating Systems
+            //for not implemented Operating Systems
         else
             assertEquals("Expected two trustManagers", 2, tms.size());
     }

@@ -21,12 +21,12 @@ public class JKSCustomTrustStore implements ICustomTrustStore
     private Path path;
     private KeyStore ks;
     private ICustomTrustStore simpleTrustStore;
-
+    
     public JKSCustomTrustStore()
     {
         this(null);
     }
-
+    
     public JKSCustomTrustStore(Path pPath)
     {
         if (pPath == null)
@@ -35,7 +35,7 @@ public class JKSCustomTrustStore implements ICustomTrustStore
         ks = _loadKS();
         simpleTrustStore = new SimpleCustomTrustStore();
     }
-
+    
     private KeyStore _loadKS()
     {
         try
@@ -46,7 +46,7 @@ public class JKSCustomTrustStore implements ICustomTrustStore
             throw new RuntimeException(e);
         }
     }
-
+    
     private void _saveKS()
     {
         try
@@ -57,8 +57,8 @@ public class JKSCustomTrustStore implements ICustomTrustStore
             throw new RuntimeException(e);
         }
     }
-
-
+    
+    
     @Override
     public synchronized X509Certificate get(String pAlias)
     {
@@ -68,14 +68,16 @@ public class JKSCustomTrustStore implements ICustomTrustStore
             if (certificate != null)
                 return certificate;
             return (X509Certificate) ks.getCertificate(pAlias);
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException e)
+        {
             throw new RuntimeException(e);
         }
     }
-
+    
     /**
      * The certificate will be added to a permanent file, if pPersist is true. Otherwise it will be saved in a map in
      * simpleTrustStore
+     *
      * @param pAlias A alias name to be able to differentiate the certificates after saving them in a file
      */
     @Override
@@ -89,9 +91,10 @@ public class JKSCustomTrustStore implements ICustomTrustStore
                 _saveKS();
             } else
                 simpleTrustStore.add(pAlias, pCertificate, pPersist);
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException e)
+        {
             throw new RuntimeException(e);
         }
     }
-
+    
 }
