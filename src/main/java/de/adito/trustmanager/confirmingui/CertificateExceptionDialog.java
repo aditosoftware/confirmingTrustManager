@@ -54,7 +54,7 @@ class CertificateExceptionDialog extends JDialog
         constraintText.gridy = 0;
         constraintText.gridwidth = 2;
         constraintText.gridheight = 1;
-        constraintText.insets = new Insets(0, 30, 0, 30);
+        constraintText.insets = new Insets(5, 30, 5, 30);
         constraintText.anchor = GridBagConstraints.CENTER;
         
         JButton extendDialog = new JButton(bundle.getString("extDialog"));
@@ -84,7 +84,7 @@ class CertificateExceptionDialog extends JDialog
         GridBagConstraints constraintsButton = new GridBagConstraints();
         constraintsButton.gridx = 1;
         constraintsButton.gridy = 1;
-        constraintsButton.insets = new Insets(0, 10, 0, 10);
+        constraintsButton.insets = new Insets(0, 10, 5, 10);
         constraintsButton.anchor = GridBagConstraints.LAST_LINE_END;
         
         ActionListener keyAction = pressedKey -> dispose();
@@ -112,7 +112,7 @@ class CertificateExceptionDialog extends JDialog
         textConstraints.gridy = 2;
         textConstraints.gridwidth = 2;
         textConstraints.gridheight = 1;
-        textConstraints.insets = new Insets(0, 10, 0, 10);
+        textConstraints.insets = new Insets(5, 10, 5, 10);
         textConstraints.anchor = GridBagConstraints.CENTER;
         
         //Button Handling
@@ -136,7 +136,7 @@ class CertificateExceptionDialog extends JDialog
         GridBagConstraints button2 = new GridBagConstraints();
         button2.gridx = 1;
         button2.gridy = 3;
-        button2.insets = new Insets(0, 10, 0, 10);
+        button2.insets = new Insets(0, 10, 5, 10);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
         
         add(extScrollPane, textConstraints);

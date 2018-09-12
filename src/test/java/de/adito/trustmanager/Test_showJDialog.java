@@ -10,9 +10,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-
 import java.util.stream.Collectors;
 
 public class Test_showJDialog
@@ -22,6 +24,8 @@ public class Test_showJDialog
     static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
+        //Locale locale = new Locale("en");
+        //Locale.setDefault(locale);
         LookAndFeel.setLookAndFeel();
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext();
         SSLContext.setDefault(sslContext);
