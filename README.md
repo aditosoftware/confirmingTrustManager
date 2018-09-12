@@ -1,5 +1,7 @@
 # ConfirmingTrustManager
 
+[![Build Status](https://travis-ci.org/aditosoftware/confirmingTrustManager.svg?branch=master)](https://travis-ci.org/aditosoftware/confirmingTrustManager)
+
 A java implementation that can validate a X509Certificate with several TrustManagers (eg ones using the keystore of
 Windows or Java). The Java KeyStore will be used as default, unless there is a keystore set in the systemProperties via
 `-Djavax.net.ssl.keystore=your/keystore/path`.
