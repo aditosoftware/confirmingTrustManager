@@ -1,8 +1,8 @@
 package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
@@ -20,19 +20,18 @@ import java.util.stream.Collectors;
 public class Test_showJDialog
 {
     
-    @BeforeAll
-    static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+    @BeforeClass
+    public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
         //Locale locale = new Locale("en");
         //Locale.setDefault(locale);
-        LookAndFeel.setLookAndFeel();
         SSLContext sslContext = ConfirmingUITrustManager.createSslContext();
         SSLContext.setDefault(sslContext);
     }
     
     @Test
-    void test() throws IOException
+    public void test() throws IOException
     {
         _read(new URL("https://expired.badssl.com/"));
         _read(new URL("https://wrong.host.badssl.com/"));

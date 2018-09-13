@@ -3,9 +3,10 @@ package de.adito.trustmanager;
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -21,7 +22,8 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.fail;
 
 public class Test_CertificateExceptionDetail
 {
@@ -39,7 +41,7 @@ public class Test_CertificateExceptionDetail
         }
     }
     
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
@@ -67,7 +69,7 @@ public class Test_CertificateExceptionDetail
         SSLContext.setDefault(sslContext);
     }
     
-    @BeforeEach
+    @Before
     public void resetResult()
     {
         resultETypes = null;
@@ -143,6 +145,6 @@ public class Test_CertificateExceptionDetail
         
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         String testString = bundle.getString("firstMsg") + "\n\n" + bundle.getString("wrongHost") + "\n\n";
-        assertTrue(testString.length() < resultString.length(), "No SubjectAlternativeNames found");
+        Assert.assertTrue("No SubjectAlternativeNames found", testString.length() < resultString.length());
     }
 }
