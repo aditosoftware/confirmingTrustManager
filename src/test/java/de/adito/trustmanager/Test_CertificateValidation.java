@@ -3,18 +3,15 @@ package de.adito.trustmanager;
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -25,12 +22,14 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
-public class Test_CertificateExceptionDetail
+public class Test_CertificateValidation
 {
     
     private static CertificateExceptionDetail.EType[] resultETypes;
     private static String resultString;
     private static CertificateExceptionDetail.EType[] resultWrongHost;
+    public static Path path;
+    public static X509Certificate[] chain;
     
     private String _read(URL pUrl) throws IOException
     {
@@ -45,13 +44,15 @@ public class Test_CertificateExceptionDetail
     public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
+        path = Paths.get(System.getProperty("user.dir") + File.separator + "testTrustStore.jks");
         resultString = null;
         resultWrongHost = null;
-        ICustomTrustStore trustStore = new JKSCustomTrustStore();
+        ICustomTrustStore trustStore = new JKSCustomTrustStore(path);
         CustomTrustManager trustManager = new CustomTrustManager(trustStore, CustomTrustManager.createStandardTrustManagers())
         {
             @Override
-            protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo) throws CertificateException
+            protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
+                    throws CertificateException
             {
                 CertificateExceptionDetail exceptionDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo);
                 resultETypes = exceptionDetail.getTypes().toArray(new CertificateExceptionDetail.EType[0]);
@@ -59,6 +60,7 @@ public class Test_CertificateExceptionDetail
                 {
                     resultWrongHost = resultETypes;
                     resultString = exceptionDetail.makeExceptionMessage(pSimpleInfo);
+                    chain = pChain;
                 }
                 return false;
             }
@@ -146,5 +148,44 @@ public class Test_CertificateExceptionDetail
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         String testString = bundle.getString("firstMsg") + "\n\n" + bundle.getString("wrongHost") + "\n\n";
         Assert.assertTrue("No SubjectAlternativeNames found", testString.length() < resultString.length());
+    }
+    
+    @Test
+    public void testCreateTrustStore() throws IOException
+    {
+        if (chain == null)
+            _read(new URL("https://expired.badssl.com/"));
+        ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
+        
+        testTrustStore.add("testCert", chain[chain.length - 1], true);
+        Assert.assertTrue("testTrustStore was not created", Files.isRegularFile(path));
+    }
+    
+    @Test
+    public void testSaveCertificatePermanently() throws IOException
+    {
+        if (chain == null)
+            _read(new URL("https://expired.badssl.com/"));
+        ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
+        
+        testTrustStore.add("testCert", chain[chain.length - 1], true);
+        Assert.assertEquals("certificate alias is not matching", chain[chain.length - 1], testTrustStore.get("testCert"));
+    }
+    
+    @Test
+    public void testSaveCertificateVolatile() throws IOException
+    {
+        if (chain == null)
+            _read(new URL("https://expired.badssl.com/"));
+        ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
+        
+        testTrustStore.add("testCert", chain[chain.length - 1], false);
+        Assert.assertTrue("certificate was added permanently", !Files.isRegularFile(path));
+    }
+    
+    @After
+    public void deleteTrustStore() throws IOException
+    {
+        Files.deleteIfExists(path);
     }
 }
