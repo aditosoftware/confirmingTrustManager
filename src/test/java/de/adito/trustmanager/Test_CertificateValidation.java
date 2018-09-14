@@ -28,8 +28,8 @@ public class Test_CertificateValidation
     private static CertificateExceptionDetail.EType[] resultETypes;
     private static String resultString;
     private static CertificateExceptionDetail.EType[] resultWrongHost;
-    public static Path path;
-    public static X509Certificate[] chain;
+    private static Path path;
+    private static X509Certificate[] chain;
     
     private String _read(URL pUrl) throws IOException
     {
@@ -54,13 +54,14 @@ public class Test_CertificateValidation
             protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
                     throws CertificateException
             {
+                chain = pChain;
                 CertificateExceptionDetail exceptionDetail = CertificateExceptionDetail.createExceptionDetail(pChain, pE, pSimpleInfo);
                 resultETypes = exceptionDetail.getTypes().toArray(new CertificateExceptionDetail.EType[0]);
+                
                 if (resultETypes[0] == CertificateExceptionDetail.EType.WRONG_HOST)
                 {
                     resultWrongHost = resultETypes;
                     resultString = exceptionDetail.makeExceptionMessage(pSimpleInfo);
-                    chain = pChain;
                 }
                 return false;
             }
@@ -154,7 +155,7 @@ public class Test_CertificateValidation
     public void testCreateTrustStore() throws IOException
     {
         if (chain == null)
-            _read(new URL("https://expired.badssl.com/"));
+            _read(new URL("https://wrong.host.badssl.com/"));
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], true);
@@ -165,7 +166,7 @@ public class Test_CertificateValidation
     public void testSaveCertificatePermanently() throws IOException
     {
         if (chain == null)
-            _read(new URL("https://expired.badssl.com/"));
+            _read(new URL("https://wrong.host.badssl.com/"));
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], true);
@@ -176,7 +177,7 @@ public class Test_CertificateValidation
     public void testSaveCertificateVolatile() throws IOException
     {
         if (chain == null)
-            _read(new URL("https://expired.badssl.com/"));
+            _read(new URL("https://wrong.host.badssl.com/"));
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], false);
