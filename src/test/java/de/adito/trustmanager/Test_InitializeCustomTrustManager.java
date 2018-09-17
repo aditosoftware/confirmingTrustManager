@@ -2,9 +2,7 @@ package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.mockito.Mockito;
 
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -22,13 +20,7 @@ import static org.junit.Assert.fail;
 
 public class Test_InitializeCustomTrustManager
 {
-    @Before
-    public void setUp()
-    {
-        System.clearProperty("javax.net.ssl.trustStore");
-    }
-    
-    //Test Constructor
+    //Test CustomTrustManagerConstructor
     @Test
     public void testConstructorTrustStoreNull()
     {
@@ -86,7 +78,6 @@ public class Test_InitializeCustomTrustManager
     public void testConstructorEmptyIterable()
     {
         ICustomTrustStore trustStoreMock = Mockito.mock(ICustomTrustStore.class);
-        
         try
         {
             new CustomTrustManager(trustStoreMock, new ArrayList<>())
@@ -126,5 +117,7 @@ public class Test_InitializeCustomTrustManager
             //for not implemented Operating Systems, if this fails, maybe a new test for another OS needs to be implemented
         else
             Assert.assertEquals( "Expected two trustManagers", 2, tms.size());
+        
+        System.clearProperty("javax.net.ssl.truststore");
     }
 }

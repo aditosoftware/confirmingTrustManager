@@ -28,21 +28,11 @@ import static org.junit.Assert.fail;
 
 public class Test_CertificateValidation
 {
-    
     private static CertificateExceptionDetail.EType[] resultETypes;
     private static String resultString;
     private static CertificateExceptionDetail.EType[] resultWrongHost;
     private static Path path;
     private static X509Certificate[] chain;
-    
-    private String _read(URL pUrl) throws IOException
-    {
-        try (InputStream inputStream = pUrl.openConnection().getInputStream())
-        {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            return reader.lines().collect(Collectors.joining("\n"));
-        }
-    }
     
     @BeforeClass
     public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
@@ -70,7 +60,6 @@ public class Test_CertificateValidation
                 return false;
             }
         };
-        
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
         SSLContext.setDefault(sslContext);
@@ -126,7 +115,7 @@ public class Test_CertificateValidation
     }
     
     @Test
-    public void testRevoked() throws IOException
+    public void testRevoked()
     {
         try
         {
@@ -164,6 +153,7 @@ public class Test_CertificateValidation
         
         ResourceBundle bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
         String testString = bundle.getString("firstMsg") + "\n\n" + bundle.getString("wrongHost") + "\n\n";
+        
         Assert.assertTrue("No SubjectAlternativeNames found", testString.length() < resultString.length());
     }
     
@@ -204,5 +194,14 @@ public class Test_CertificateValidation
     public void deleteTrustStore() throws IOException
     {
         Files.deleteIfExists(path);
+    }
+    
+    private String _read(URL pUrl) throws IOException
+    {
+        try (InputStream inputStream = pUrl.openConnection().getInputStream())
+        {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            return reader.lines().collect(Collectors.joining("\n"));
+        }
     }
 }
