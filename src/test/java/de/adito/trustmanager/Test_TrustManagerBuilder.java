@@ -40,28 +40,20 @@ public class Test_TrustManagerBuilder
     }
     
     @Test
-    public void testWindowsTrustManager()
+    public void testOSTrustManager()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
         X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
-        Assert.assertNotNull( "WindowsTrustManager was not created", trustManager);
-    }
-    
-    /*@Test
-    @EnabledOnOs(OS.MAC)
-    public void testMacTrustManager()
-            throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
-    {
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
-        Assert.assertNotNull("MacTrustManager was not created", trustManager);
+        Assert.assertNotNull("An operating system specific trustManager was not created, you might have to include " +
+                "logic in TrustManagerBuilder.buildOSTrustStore()\n", trustManager);
     }
     
     @Test
-    @EnabledOnOs(OS.LINUX)
-    public void testLinuxTrustManager()
+    public void testNoOSTrustManager()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
-        Assert.assertNotNull("LinuxTrustManager was not created", trustManager);
-    }*/
+        
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore("NotValidOS");
+        Assert.assertNull("Expected null as the operating system 'NotValidOS' should not be recognised", trustManager);
+    }
 }
