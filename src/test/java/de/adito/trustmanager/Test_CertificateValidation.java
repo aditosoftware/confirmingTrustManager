@@ -4,6 +4,7 @@ import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.*;
+import sun.security.validator.ValidatorException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -13,13 +14,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateRevokedException;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class Test_CertificateValidation
@@ -122,7 +126,7 @@ public class Test_CertificateValidation
     }
     
     @Test
-    public void testRevoked()
+    public void testRevoked() throws IOException
     {
         try
         {
@@ -130,6 +134,18 @@ public class Test_CertificateValidation
             fail("Expected CertificateRevokedException not thrown");
         } catch (Exception exc)
         {
+            Throwable cause = exc.getCause();
+            if (cause instanceof ValidatorException)
+            {
+                Throwable secondCause = cause.getCause();
+                if (secondCause instanceof CertPathValidatorException)
+                {
+                    Throwable rootCause = secondCause.getCause();
+                    assertTrue(rootCause instanceof CertificateRevokedException);
+                } else
+                    fail("Expected CertificateRevokedException. " + secondCause.getClass().getSimpleName() + " was thrown.");
+            } else
+                fail("Expected CertificateRevokedException. " + cause.getClass().getSimpleName() + " was thrown.");
         }
     }
     
