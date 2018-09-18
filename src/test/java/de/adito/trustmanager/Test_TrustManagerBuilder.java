@@ -28,17 +28,19 @@ public class Test_TrustManagerBuilder
         System.setProperty("javax.net.ssl.keyStore", (System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts"));
         X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildDefaultTrustManager();
         System.clearProperty("javax.net.ssl.keyStore");
-
+        
         Assert.assertNotNull("TrustManager with SystemProperties was not created", trustManager);
     }
     
     @Test
-    public void testOSTrustManager()
+    public void testWindowsTrustManager()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
-        Assert.assertNotNull("An operating system specific trustManager was not created, you might have to include " +
-                "logic in TrustManagerBuilder.buildOSTrustStore()\n", trustManager);
+        String osName = System.getProperty("os.name");
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(osName);
+        if (osName.startsWith("Windows"))
+            Assert.assertNotNull("An operating system specific trustManager was not created, you might have to include " +
+                    "logic in TrustManagerBuilder.buildOSTrustStore()\n", trustManager);
     }
     
     @Test
