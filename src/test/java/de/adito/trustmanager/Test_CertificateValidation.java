@@ -75,7 +75,8 @@ public class Test_CertificateValidation
     public void testExpired() throws IOException
     {
         _read(new URL("https://expired.badssl.com/"));
-        assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
+        assertArrayEquals("CertificateExceptionDetail returned wrong EType",
+                new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
     
     @Test
@@ -86,9 +87,11 @@ public class Test_CertificateValidation
             resultETypes = resultWrongHost;
         
         if (resultETypes.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, resultETypes);
+            assertArrayEquals("CertificateExceptionDetail returned wrong EType",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST}, resultETypes);
         else
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST,
+            assertArrayEquals("CertificateExceptionDetail returned wrong ETypes",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.WRONG_HOST,
                     CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
     
@@ -97,9 +100,11 @@ public class Test_CertificateValidation
     {
         _read(new URL("https://self-signed.badssl.com"));
         if (resultETypes.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, resultETypes);
+            assertArrayEquals("CertificateExceptionDetail returned wrong EType",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED}, resultETypes);
         else
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED,
+            assertArrayEquals("CertificateExceptionDetail returned wrong ETypes",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.SELF_SIGNED,
                     CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
     
@@ -108,9 +113,11 @@ public class Test_CertificateValidation
     {
         _read(new URL("https://untrusted-root.badssl.com/"));
         if (resultETypes.length == 1)
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, resultETypes);
+            assertArrayEquals("CertificateExceptionDetail returned wrong EType",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT}, resultETypes);
         else
-            assertArrayEquals(new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT,
+            assertArrayEquals("CertificateExceptionDetail returned wrong ETypes",
+                    new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT,
                     CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
     }
     
@@ -120,7 +127,7 @@ public class Test_CertificateValidation
         try
         {
             _read(new URL("https://revoked.badssl.com/"));
-            fail("Expected CertificateRevokedException not thrown");
+            fail("Expected CertificateRevokedException, but no exception was thrown");
         } catch (Exception exc)
         {
             Throwable cause = exc.getCause();
@@ -132,9 +139,9 @@ public class Test_CertificateValidation
                     Throwable rootCause = secondCause.getCause();
                     assertTrue(rootCause instanceof CertificateRevokedException);
                 } else
-                    fail("Expected CertificateRevokedException. " + secondCause.getClass().getSimpleName() + " was thrown.");
+                    fail("Expected CertificateRevokedException, but " + secondCause.getClass().getSimpleName() + " was thrown.");
             } else
-                fail("Expected CertificateRevokedException. " + cause.getClass().getSimpleName() + " was thrown.");
+                fail("Expected CertificateRevokedException, but " + cause.getClass().getSimpleName() + " was thrown.");
         }
     }
     
@@ -142,7 +149,7 @@ public class Test_CertificateValidation
     public void testTrustedURL() throws IOException
     {
         _read(new URL("https://www.google.com"));
-        assertArrayEquals(null, resultETypes);
+        assertArrayEquals("The URL should have been trusted", null, resultETypes);
     }
     
     @Test
@@ -165,7 +172,7 @@ public class Test_CertificateValidation
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], true);
-        Assert.assertTrue("testTrustStore was not created", Files.isRegularFile(path));
+        Assert.assertTrue("TestTrustStore was not created", Files.isRegularFile(path));
     }
     
     @Test
@@ -176,7 +183,7 @@ public class Test_CertificateValidation
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], true);
-        Assert.assertEquals("certificate alias is not matching", chain[chain.length - 1], testTrustStore.get("testCert"));
+        Assert.assertEquals("Certificate alias is not matching", chain[chain.length - 1], testTrustStore.get("testCert"));
     }
     
     @Test
@@ -187,7 +194,7 @@ public class Test_CertificateValidation
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], false);
-        Assert.assertTrue("certificate was added permanently", !Files.isRegularFile(path));
+        Assert.assertTrue("Certificate was added permanently, expected it to be volatile", !Files.isRegularFile(path));
     }
     
     @After

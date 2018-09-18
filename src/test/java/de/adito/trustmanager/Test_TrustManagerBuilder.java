@@ -27,9 +27,9 @@ public class Test_TrustManagerBuilder
     {
         System.setProperty("javax.net.ssl.keyStore", (System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts"));
         X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildDefaultTrustManager();
-        
-        Assert.assertNotNull("TrustManager with SystemProperties was not created", trustManager);
         System.clearProperty("javax.net.ssl.keyStore");
+
+        Assert.assertNotNull("TrustManager with SystemProperties was not created", trustManager);
     }
     
     @Test

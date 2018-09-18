@@ -111,13 +111,12 @@ public class Test_InitializeCustomTrustManager
         String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts";
         System.setProperty("javax.net.ssl.truststore", path);
         ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
+        System.clearProperty("javax.net.ssl.truststore");
         
         if (System.getProperty("os.name").contains("Windows"))
             Assert.assertEquals("Expected three trustManagers", 3, tms.size());
             //for not implemented Operating Systems, if this fails, maybe a new test for another OS needs to be implemented
         else
             Assert.assertEquals( "Expected two trustManagers", 2, tms.size());
-        
-        System.clearProperty("javax.net.ssl.truststore");
     }
 }
