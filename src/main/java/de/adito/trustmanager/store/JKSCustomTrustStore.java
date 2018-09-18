@@ -18,6 +18,8 @@ import java.security.cert.X509Certificate;
  */
 public class JKSCustomTrustStore implements ICustomTrustStore
 {
+    public static final String TRUST_STORE_PATH = "trustStore.jks";
+
     private Path path;
     private KeyStore ks;
     private ICustomTrustStore simpleTrustStore;
@@ -30,7 +32,7 @@ public class JKSCustomTrustStore implements ICustomTrustStore
     public JKSCustomTrustStore(Path pPath)
     {
         if (pPath == null)
-            pPath = Paths.get("trustStore.jks");
+            pPath = Paths.get(TRUST_STORE_PATH);
         path = pPath;
         ks = _loadKS();
         simpleTrustStore = new SimpleCustomTrustStore();
