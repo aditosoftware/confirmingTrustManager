@@ -2,6 +2,7 @@ package de.adito.trustmanager;
 
 import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.net.ssl.SSLContext;
@@ -31,6 +32,7 @@ public class Test_showJDialog
     }
     
     @Test
+    @Ignore
     public void test() throws IOException
     {
         _read(new URL("https://expired.badssl.com/"));
