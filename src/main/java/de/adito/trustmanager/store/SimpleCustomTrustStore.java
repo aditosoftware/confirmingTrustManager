@@ -4,6 +4,10 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A simple trustStore to save volatile certificates
+ */
+
 public class SimpleCustomTrustStore implements ICustomTrustStore
 {
     

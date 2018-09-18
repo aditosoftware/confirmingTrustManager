@@ -21,7 +21,8 @@ public class ConfirmingUITrustManager extends CustomTrustManager
     }
 
     /**
-     * This method handles the JDialog and its return value
+     * This method handles the JDialog and its return value. It will throw a CertificateException if r != 0 || r != 1.
+     * Otherwise the program returns to {@link CustomTrustManager}.
      */
     protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pCertExc, String pSimpleInfo)
             throws CertificateException

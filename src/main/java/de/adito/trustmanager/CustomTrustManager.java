@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * This class initiates a list of TrustManagers to test if the certificate is already trusted by any of these TMs. If it
  * is not trusted, the certificateException will be caught and the JDialog will be prompted.
- * The Java trustManager will be used as default.
+ * The Java trustManager or a trustManager with a keystore set by the systemProperties will be used as default.
  * All trustManagers are initialised to throw a certificateRevokedException.
  */
 public abstract class CustomTrustManager extends X509ExtendedTrustManager
@@ -156,7 +156,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
     }
     
     /**
-     * This method will use the decision of the user and add the certificate permanently or only trust it once.
+     * This method will use the user's decision and add the certificate permanently or only trust it once.
      */
     private void _tryCustomTrustManager(X509Certificate[] pChain, CertificateException pException, String pSimpleInfo)
             throws CertificateException

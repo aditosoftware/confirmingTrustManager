@@ -13,6 +13,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * TrustManagerUtil helps handling keyStores and certificates, eg create a unique certificate alias to store it in a trustStore.
+ */
 public class TrustManagerUtil
 {
     public static char[] HEX_DIGITS = {
