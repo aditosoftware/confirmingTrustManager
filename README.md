@@ -18,5 +18,16 @@ This trustStore has to be given to the CustomTrustManager constructor. Otherwise
 
 If the user chooses to cancel the process, a CertificateException will be thrown.
 
-An operatingSystem specific trustStore can be added in the CustomTrustManager class.(Atm the implementation is only able
+An operatingSystem specific trustStore can be added in the CustomTrustManager class. (Atm the implementation is only able
 to detect windows operating systems)
+
+Get started
+------------
+The easiest way to get started with ConfirmingTrustManager is using the following snippet in your pom.xml.
+```xml
+<dependency>
+  <groupId>de.adito</groupId>
+  <artifactId>trustmanager</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
