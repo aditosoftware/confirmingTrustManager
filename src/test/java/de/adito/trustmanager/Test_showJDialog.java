@@ -1,11 +1,9 @@
 package de.adito.trustmanager;
 
-import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,10 +23,7 @@ public class Test_showJDialog
     public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
             InvalidAlgorithmParameterException, KeyManagementException, IOException
     {
-        //Locale locale = new Locale("en");
-        //Locale.setDefault(locale);
-        SSLContext sslContext = ConfirmingUITrustManager.createSslContext();
-        SSLContext.setDefault(sslContext);
+        TrustManagerSslContext.initSslContext();
     }
     
     @Test

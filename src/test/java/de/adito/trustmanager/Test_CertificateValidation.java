@@ -42,7 +42,7 @@ public class Test_CertificateValidation
         resultString = null;
         resultWrongHost = null;
         ICustomTrustStore trustStore = new JKSCustomTrustStore(path);
-        CustomTrustManager trustManager = new CustomTrustManager(trustStore, CustomTrustManager.createStandardTrustManagers())
+        CustomTrustManager trustManager = new CustomTrustManager(trustStore, TrustManagerBuilder.createDefaultTrustManagers())
         {
             @Override
             protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
@@ -194,7 +194,7 @@ public class Test_CertificateValidation
         ICustomTrustStore testTrustStore = new JKSCustomTrustStore(path);
         
         testTrustStore.add("testCert", chain[chain.length - 1], false);
-        Assert.assertTrue("Certificate was added permanently, expected it to be volatile", !Files.isRegularFile(path));
+        Assert.assertFalse("Certificate was added permanently, expected it to be volatile", Files.isRegularFile(path));
     }
     
     @After

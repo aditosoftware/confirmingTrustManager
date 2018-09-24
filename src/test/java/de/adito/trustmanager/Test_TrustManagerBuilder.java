@@ -17,7 +17,7 @@ public class Test_TrustManagerBuilder
     public void testBuildDefaultJavaTrustManager()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildDefaultTrustManager();
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildJavaTrustManager();
         Assert.assertNotNull("Default TrustManager was not created", trustManager);
     }
     
@@ -26,7 +26,7 @@ public class Test_TrustManagerBuilder
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
         System.setProperty("javax.net.ssl.keyStore", (System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts"));
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildDefaultTrustManager();
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildJavaTrustManager();
         System.clearProperty("javax.net.ssl.keyStore");
         
         Assert.assertNotNull("TrustManager with SystemProperties was not created", trustManager);
@@ -37,17 +37,17 @@ public class Test_TrustManagerBuilder
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
         String osName = System.getProperty("os.name");
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(osName);
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOsTrustManager(osName);
         if (osName.startsWith("Windows"))
             Assert.assertNotNull("An operating system specific trustManager was not created, you might have to include " +
-                    "logic in TrustManagerBuilder.buildOSTrustStore()\n", trustManager);
+                    "logic in TrustManagerBuilder.buildOsTrustManager()\n", trustManager);
     }
     
     @Test
     public void testNoOSTrustManager()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore("NotValidOS");
+        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOsTrustManager("NotValidOS");
         Assert.assertNull("Expected null as the operating system 'NotValidOS' should not be recognised", trustManager);
     }
 }

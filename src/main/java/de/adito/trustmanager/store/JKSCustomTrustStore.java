@@ -18,6 +18,7 @@ import java.security.cert.X509Certificate;
  */
 public class JKSCustomTrustStore implements ICustomTrustStore
 {
+    public static final String TURST_STORE_PATH_SYSTEM_PROPERTY = "de.adito.trustmanager.truststore.path";
     public static final String TRUST_STORE_PATH = "trustStore.jks";
 
     private Path path;
@@ -31,9 +32,11 @@ public class JKSCustomTrustStore implements ICustomTrustStore
     
     public JKSCustomTrustStore(Path pPath)
     {
-        if (pPath == null)
-            pPath = Paths.get(TRUST_STORE_PATH);
-        path = pPath;
+        if (pPath == null) {
+            String property = System.getProperty(TURST_STORE_PATH_SYSTEM_PROPERTY);
+            pPath = Paths.get(property == null ? TRUST_STORE_PATH : property);
+        }
+        path = pPath.toAbsolutePath();
         ks = _loadKS();
         simpleTrustStore = new SimpleCustomTrustStore();
     }

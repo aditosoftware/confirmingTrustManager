@@ -4,10 +4,7 @@ import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 
 import javax.net.ssl.*;
-import java.io.IOException;
 import java.net.Socket;
-import java.nio.file.Paths;
-import java.security.*;
 import java.security.cert.*;
 import java.util.*;
 
@@ -44,34 +41,7 @@ public abstract class CustomTrustManager extends X509ExtendedTrustManager
         acceptedCert = false;
         countHandledTMs = 0;
     }
-    
-    /**
-     * A method to create several TrustManagers, which are needed for the constructor.
-     */
-    public static List<X509ExtendedTrustManager> createStandardTrustManagers()
-            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, InvalidAlgorithmParameterException
-    {
-        List<X509ExtendedTrustManager> tms = new ArrayList<>();
-        
-        String trustStorePath = System.getProperty("javax.net.ssl.truststore");
-        if (trustStorePath != null)
-        {
-            String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
-            KeyStore jks = TrustManagerUtil.loadKeyStore(pw, Paths.get(trustStorePath));
-            tms.add(TrustManagerBuilder.buildDefaultTrustManager(jks));
-        }
 
-//initialize OS truststore
-        X509ExtendedTrustManager trustManager = TrustManagerBuilder.buildOSTrustStore(System.getProperty("os.name"));
-        if (trustManager != null)
-            tms.add(trustManager);
-
-//initialize default trustManager
-        tms.add(TrustManagerBuilder.buildDefaultTrustManager());
-        
-        return tms;
-    }
-    
     public X509Certificate[] getAcceptedIssuers()
     {
         List<X509Certificate> certificates = new LinkedList<>();

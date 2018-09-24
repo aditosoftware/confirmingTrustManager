@@ -1,16 +1,11 @@
 package de.adito.trustmanager.confirmingui;
 
-import de.adito.trustmanager.CustomTrustManager;
+import de.adito.trustmanager.*;
 import de.adito.trustmanager.store.ICustomTrustStore;
-import de.adito.trustmanager.store.JKSCustomTrustStore;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.swing.*;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.*;
 import java.security.cert.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,21 +18,6 @@ public class ConfirmingUITrustManager extends CustomTrustManager
     public ConfirmingUITrustManager(ICustomTrustStore pTrustStore, Iterable<X509ExtendedTrustManager> pTrustManagers)
     {
         super(pTrustStore, pTrustManagers);
-    }
-
-    public static SSLContext createSslContext() throws CertificateException, InvalidAlgorithmParameterException,
-            NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
-    {
-        return createSslContext(new JKSCustomTrustStore());
-    }
-
-    public static SSLContext createSslContext(ICustomTrustStore pTrustStore) throws CertificateException, InvalidAlgorithmParameterException,
-            NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
-    {
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        CustomTrustManager trustManager = new ConfirmingUITrustManager(pTrustStore, createStandardTrustManagers());
-        sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-        return sslContext;
     }
 
     /**
@@ -54,9 +34,7 @@ public class ConfirmingUITrustManager extends CustomTrustManager
             result.set(_createDialog(detailMessage));
         else {
             try {
-                SwingUtilities.invokeAndWait(() -> {
-                    result.set(_createDialog(detailMessage));
-                });
+                SwingUtilities.invokeAndWait(() -> result.set(_createDialog(detailMessage)));
             }
             catch (InterruptedException | InvocationTargetException pE) {
                 pE.printStackTrace();

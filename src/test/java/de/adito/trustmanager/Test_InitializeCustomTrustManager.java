@@ -1,6 +1,5 @@
 package de.adito.trustmanager;
 
-import de.adito.trustmanager.confirmingui.ConfirmingUITrustManager;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import org.junit.*;
 import org.mockito.Mockito;
@@ -16,103 +15,74 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import static org.junit.Assert.fail;
-
 public class Test_InitializeCustomTrustManager
 {
-    //Test CustomTrustManagerConstructor
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testConstructorTrustStoreNull()
     {
-        Iterable iterableMock = Mockito.mock(Iterable.class);
-        try
+        Iterable<X509ExtendedTrustManager> iterableMock = Mockito.mock(Iterable.class);
+        new CustomTrustManager(null, iterableMock)
         {
-            new CustomTrustManager(null, iterableMock)
+            @Override
+            protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
             {
-                @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
-                {
-                    return false;
-                }
-            };
-            fail("Expected NullPointerException");
-        } catch (NullPointerException exc)
-        {
-        }
+                return false;
+            }
+        };
     }
-    
-    @Test
+
+    @Test(expected = NullPointerException.class)
     public void testCreateSslContextTrustStoreNull()
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, InvalidAlgorithmParameterException, IOException
     {
-        try
-        {
-            ConfirmingUITrustManager.createSslContext(null);
-            fail("Expected NullPointerException");
-        } catch (NullPointerException exc)
-        {
-        }
+        TrustManagerSslContext.initSslContext((ICustomTrustStore)null);
     }
-    
-    @Test
+
+    @Test(expected = NullPointerException.class)
     public void testConstructorIterableNull()
     {
         ICustomTrustStore trustStoreMock = Mockito.mock(ICustomTrustStore.class);
-        try
+        new CustomTrustManager(trustStoreMock, null)
         {
-            new CustomTrustManager(trustStoreMock, null)
+            @Override
+            protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
             {
-                @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
-                {
-                    return false;
-                }
-            };
-            fail("Expected NullPointerException");
-        } catch (NullPointerException exc)
-        {
-        }
+                return false;
+            }
+        };
     }
-    
-    @Test
+
+    @Test(expected = NullPointerException.class)
     public void testConstructorEmptyIterable()
     {
         ICustomTrustStore trustStoreMock = Mockito.mock(ICustomTrustStore.class);
-        try
+        new CustomTrustManager(trustStoreMock, new ArrayList<>())
         {
-            new CustomTrustManager(trustStoreMock, new ArrayList<>())
+            @Override
+            protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
             {
-                @Override
-                protected boolean checkCertificateAndShouldPersist(X509Certificate[] pChain, CertificateException pE, String pSimpleInfo)
-                {
-                    return false;
-                    
-                }
-            };
-            fail("Expected NullPointerException");
-            
-        } catch (NullPointerException exc)
-        {
-        }
+                return false;
+            }
+        };
     }
-    
+
     @Test
     public void testCreateStandardTrustManagersNotEmpty()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
-        ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
-        Assert.assertTrue("TrustManagerList cannot be empty", !tms.isEmpty());
+        ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) TrustManagerBuilder.createDefaultTrustManagers();
+        Assert.assertFalse("TrustManagerList cannot be empty", tms.isEmpty());
     }
-    
+
     @Test
     public void testCreateStandardTrustManagers()
             throws CertificateException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, IOException
     {
         String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator + "cacerts";
         System.setProperty("javax.net.ssl.truststore", path);
-        ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) CustomTrustManager.createStandardTrustManagers();
+        ArrayList<X509ExtendedTrustManager> tms = (ArrayList<X509ExtendedTrustManager>) TrustManagerBuilder.createDefaultTrustManagers();
         System.clearProperty("javax.net.ssl.truststore");
-        
+
         if (System.getProperty("os.name").contains("Windows"))
             Assert.assertEquals("Expected three trustManagers", 3, tms.size());
             //for not implemented Operating Systems, if this fails, maybe a new test for another OS needs to be implemented
