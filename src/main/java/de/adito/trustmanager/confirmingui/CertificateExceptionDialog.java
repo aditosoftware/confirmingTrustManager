@@ -32,7 +32,7 @@ class CertificateExceptionDialog extends JDialog
         this.isExtended = false;
         this.detailMsg = pDetailMessage;
         bundle = ResourceBundle.getBundle("de.adito.trustmanager.dialogMessage", Locale.getDefault());
-        
+
         _createFirstDialog();
     }
     
@@ -45,9 +45,11 @@ class CertificateExceptionDialog extends JDialog
         JTextArea dialog = new JTextArea(bundle.getString("unextedText"));
         dialog.setEditable(false);
         dialog.setOpaque(false);
+
         JScrollPane scrollPane = new JScrollPane(dialog);
         scrollPane.setBorder(null);
-        
+        scrollPane.setMinimumSize(new Dimension(500, 70));
+
         GridBagConstraints constraintText = new GridBagConstraints();
         constraintText.weightx = 1.0;
         constraintText.gridx = 0;
@@ -89,12 +91,13 @@ class CertificateExceptionDialog extends JDialog
         
         ActionListener keyAction = pressedKey -> dispose();
         getRootPane().registerKeyboardAction(keyAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-        
+
         add(scrollPane, constraintText);
         add(buttonPanel, constraintsButton);
         
         setAlwaysOnTop(true);
         setResizable(false);
+        setMinimumSize(new Dimension(500, 150));
         pack();
         setLocationRelativeTo(null);
     }
@@ -107,6 +110,8 @@ class CertificateExceptionDialog extends JDialog
         extendedDialog.setOpaque(false);
         
         extScrollPane = new JScrollPane(extendedDialog);
+        extScrollPane.setMinimumSize(new Dimension(500, 100));
+
         GridBagConstraints textConstraints = new GridBagConstraints();
         textConstraints.gridx = 0;
         textConstraints.gridy = 2;
@@ -138,20 +143,21 @@ class CertificateExceptionDialog extends JDialog
         button2.gridy = 3;
         button2.insets = new Insets(0, 10, 5, 10);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
-        
+
         add(extScrollPane, textConstraints);
         add(extButtonPanel, button2);
-        
+
+        setMinimumSize(new Dimension(500, 350));
         pack();
         validate();
         repaint();
-        
     }
     
     private void _hideExtendedDialog()
     {
         remove(extScrollPane);
         remove(extButtonPanel);
+        setMinimumSize(new Dimension(500, 150));
         pack();
         validate();
         repaint();
