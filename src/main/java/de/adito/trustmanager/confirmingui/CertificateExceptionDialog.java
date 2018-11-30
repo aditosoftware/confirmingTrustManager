@@ -18,7 +18,7 @@ class CertificateExceptionDialog extends JDialog
 {
     
     private JPanel extButtonPanel;
-    private JScrollPane extScrollPane;
+    private JTextArea extendedDialog;
     
     private ResourceBundle bundle;
     private boolean isExtended;
@@ -45,10 +45,6 @@ class CertificateExceptionDialog extends JDialog
         JTextArea dialog = new JTextArea(bundle.getString("unextedText"));
         dialog.setEditable(false);
         dialog.setOpaque(false);
-
-        JScrollPane scrollPane = new JScrollPane(dialog);
-        scrollPane.setBorder(null);
-        scrollPane.setMinimumSize(new Dimension(500, 70));
 
         GridBagConstraints constraintText = new GridBagConstraints();
         constraintText.weightx = 1.0;
@@ -86,18 +82,17 @@ class CertificateExceptionDialog extends JDialog
         GridBagConstraints constraintsButton = new GridBagConstraints();
         constraintsButton.gridx = 1;
         constraintsButton.gridy = 1;
-        constraintsButton.insets = new Insets(0, 10, 5, 10);
+        constraintsButton.insets = new Insets(0, 5, 5, 5);
         constraintsButton.anchor = GridBagConstraints.LAST_LINE_END;
         
         ActionListener keyAction = pressedKey -> dispose();
         getRootPane().registerKeyboardAction(keyAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-        add(scrollPane, constraintText);
+        add(dialog, constraintText);
         add(buttonPanel, constraintsButton);
         
         setAlwaysOnTop(true);
         setResizable(false);
-        setMinimumSize(new Dimension(500, 150));
         pack();
         setLocationRelativeTo(null);
     }
@@ -105,19 +100,17 @@ class CertificateExceptionDialog extends JDialog
     private void _createExtendedDialog()
     {
         //Text Handling
-        JTextArea extendedDialog = new JTextArea(detailMsg);
+        extendedDialog = new JTextArea(detailMsg);
+        extendedDialog.setBorder(BorderFactory.createEtchedBorder());
         extendedDialog.setEditable(false);
         extendedDialog.setOpaque(false);
-        
-        extScrollPane = new JScrollPane(extendedDialog);
-        extScrollPane.setMinimumSize(new Dimension(500, 100));
 
         GridBagConstraints textConstraints = new GridBagConstraints();
         textConstraints.gridx = 0;
         textConstraints.gridy = 2;
         textConstraints.gridwidth = 2;
         textConstraints.gridheight = 1;
-        textConstraints.insets = new Insets(5, 10, 5, 10);
+        textConstraints.insets = new Insets(5, 0, 5, 0);
         textConstraints.anchor = GridBagConstraints.CENTER;
         
         //Button Handling
@@ -141,13 +134,12 @@ class CertificateExceptionDialog extends JDialog
         GridBagConstraints button2 = new GridBagConstraints();
         button2.gridx = 1;
         button2.gridy = 3;
-        button2.insets = new Insets(0, 10, 5, 10);
+        button2.insets = new Insets(0, 5, 5, 5);
         button2.anchor = GridBagConstraints.LAST_LINE_END;
 
-        add(extScrollPane, textConstraints);
+        add(extendedDialog, textConstraints);
         add(extButtonPanel, button2);
 
-        setMinimumSize(new Dimension(500, 350));
         pack();
         validate();
         repaint();
@@ -155,9 +147,8 @@ class CertificateExceptionDialog extends JDialog
     
     private void _hideExtendedDialog()
     {
-        remove(extScrollPane);
+        remove(extendedDialog);
         remove(extButtonPanel);
-        setMinimumSize(new Dimension(500, 150));
         pack();
         validate();
         repaint();
