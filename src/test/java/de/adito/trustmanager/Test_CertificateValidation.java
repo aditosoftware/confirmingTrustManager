@@ -4,7 +4,6 @@ import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.ICustomTrustStore;
 import de.adito.trustmanager.store.JKSCustomTrustStore;
 import org.junit.*;
-import sun.security.validator.ValidatorException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -131,7 +130,7 @@ public class Test_CertificateValidation
         } catch (Exception exc)
         {
             Throwable cause = exc.getCause();
-            if (cause instanceof ValidatorException)
+            if (cause.getClass().getSimpleName().equals("ValidatorException"))
             {
                 Throwable secondCause = cause.getCause();
                 if (secondCause instanceof CertPathValidatorException)
