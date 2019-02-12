@@ -46,13 +46,8 @@ public class TrustManagerBuilder
     {
         List<X509ExtendedTrustManager> tms = new ArrayList<>();
 
-        // initialize user defined trustManager
-        X509ExtendedTrustManager trustManager = buildTrustManagerBySystemProperties();
-        if (trustManager != null)
-          tms.add(trustManager);
-
         //initialize OS trustManager
-        trustManager = buildOsTrustManager(System.getProperty("os.name"));
+        X509ExtendedTrustManager trustManager = buildOsTrustManager(System.getProperty("os.name"));
         if (trustManager != null)
             tms.add(trustManager);
 
@@ -62,33 +57,20 @@ public class TrustManagerBuilder
         return tms;
     }
 
-    public static X509ExtendedTrustManager buildTrustManagerBySystemProperties() throws InvalidAlgorithmParameterException,
-        NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException
-    {
-        String trustStorePath = System.getProperty("javax.net.ssl.truststore");
-        if (trustStorePath != null)
-        {
-            String pw = System.getProperty("javax.net.ssl.truststorePassword", "changeit");
-            KeyStore jks = TrustManagerUtil.loadKeyStore(pw, Paths.get(trustStorePath));
-            return buildTrustManager(jks);
-        }
-        return null;
-    }
-
     public static X509ExtendedTrustManager buildJavaTrustManager()
             throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, InvalidAlgorithmParameterException
     {
-        String javaKeyStorePath = System.getProperty("javax.net.ssl.keyStore");
-        if (javaKeyStorePath == null)
+        String trustStorePath = System.getProperty("javax.net.ssl.trustStore");
+        if (trustStorePath == null)
         {
             String securityPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "security" + File.separator;
             if (Files.isRegularFile(Paths.get(securityPath + "jssecacerts")))
-                javaKeyStorePath = securityPath + "jssecacerts";
+                trustStorePath = securityPath + "jssecacerts";
             else if (Files.isRegularFile(Paths.get(securityPath + "cacerts")))
-                javaKeyStorePath = securityPath + "cacerts";
+                trustStorePath = securityPath + "cacerts";
         }
-        String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", "changeit");
-        KeyStore jKSKeyStore = TrustManagerUtil.loadKeyStore(keyStorePassword, javaKeyStorePath == null ? null : Paths.get(javaKeyStorePath));
+        String keyStorePassword = System.getProperty("javax.net.ssl.trustStorePassword", "changeit");
+        KeyStore jKSKeyStore = TrustManagerUtil.loadKeyStore(keyStorePassword, trustStorePath == null ? null : Paths.get(trustStorePath));
 
         return buildTrustManager(jKSKeyStore);
     }

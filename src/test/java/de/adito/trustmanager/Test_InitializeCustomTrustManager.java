@@ -84,9 +84,9 @@ public class Test_InitializeCustomTrustManager
         System.clearProperty("javax.net.ssl.truststore");
 
         if (System.getProperty("os.name").contains("Windows"))
-            Assert.assertEquals("Expected three trustManagers", 3, tms.size());
+            Assert.assertEquals("Expected two trustManagers", 2, tms.size());
             //for not implemented Operating Systems, if this fails, maybe a new test for another OS needs to be implemented
         else
-            Assert.assertEquals( "Expected two trustManagers", 2, tms.size());
+            Assert.assertEquals( "Expected one trustManagers", 1, tms.size());
     }
 }

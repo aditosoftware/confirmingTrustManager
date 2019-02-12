@@ -6,7 +6,7 @@
 
     <groupId>de.adito</groupId>
     <artifactId>trustmanager</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>An implementation to check certificateException and let the user decide how to handle them</description>
