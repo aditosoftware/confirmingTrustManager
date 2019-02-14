@@ -5,6 +5,7 @@ import de.adito.trustmanager.store.*;
 import org.junit.*;
 import sun.security.validator.ValidatorException;
 
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
@@ -27,6 +28,8 @@ public class Test_CertificateValidation
   public static void setup() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
       InvalidAlgorithmParameterException, KeyManagementException, IOException
   {
+    System.setProperty("adito.trustmanager.revocation.enabled", "true");
+
     path = Paths.get(System.getProperty("user.dir") + File.separator + "testTrustStore.jks");
     resultString = null;
     resultWrongHost = null;
@@ -105,6 +108,29 @@ public class Test_CertificateValidation
       assertArrayEquals("CertificateExceptionDetail returned wrong ETypes",
                         new CertificateExceptionDetail.EType[]{CertificateExceptionDetail.EType.UNTRUSTED_ROOT,
                                                                CertificateExceptionDetail.EType.EXPIRED}, resultETypes);
+  }
+
+  @Test
+  public void testRevoked()
+  {
+    try {
+      _read(new URL("https://revoked.badssl.com/"));
+      fail("Expected CertificateRevokedException, but no exception was thrown");
+    }
+    catch (Exception exc) {
+      Throwable cause = exc.getCause();
+      if (cause instanceof ValidatorException) {
+        Throwable secondCause = cause.getCause();
+        if (secondCause instanceof CertPathValidatorException) {
+          Throwable rootCause = secondCause.getCause();
+          assertTrue(rootCause instanceof CertificateRevokedException);
+        }
+        else
+          fail("Expected CertificateRevokedException, but " + secondCause.getClass().getSimpleName() + " was thrown.");
+      }
+      else
+        fail("Expected CertificateRevokedException, but " + cause.getClass().getSimpleName() + " was thrown.");
+    }
   }
 
   @Test
