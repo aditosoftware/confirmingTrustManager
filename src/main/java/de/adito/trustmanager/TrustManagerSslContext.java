@@ -30,9 +30,8 @@ public class TrustManagerSslContext
 
   public static void initSslContext(TrustManager pTrustManager) throws NoSuchAlgorithmException, KeyManagementException
   {
-    KeyManagerFactory instance = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
     SSLContext sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(instance.getKeyManagers(), new TrustManager[]{pTrustManager}, new SecureRandom());
+    sslContext.init(null, new TrustManager[]{pTrustManager}, new SecureRandom());
     SSLContext.setDefault(sslContext);
   }
 }
