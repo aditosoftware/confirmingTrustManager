@@ -3,9 +3,7 @@ package de.adito.trustmanager;
 import de.adito.trustmanager.confirmingui.CertificateExceptionDetail;
 import de.adito.trustmanager.store.*;
 import org.junit.*;
-import sun.security.validator.ValidatorException;
 
-import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
@@ -119,17 +117,17 @@ public class Test_CertificateValidation
     }
     catch (Exception exc) {
       Throwable cause = exc.getCause();
-      if (cause instanceof ValidatorException) {
+      if (cause != null) {
         Throwable secondCause = cause.getCause();
         if (secondCause instanceof CertPathValidatorException) {
           Throwable rootCause = secondCause.getCause();
           assertTrue(rootCause instanceof CertificateRevokedException);
         }
         else
-          fail("Expected CertificateRevokedException, but " + secondCause.getClass().getSimpleName() + " was thrown.");
+          fail("Expected CertificateRevokedException, but " + secondCause.getClass().getCanonicalName() + " was thrown.");
       }
       else
-        fail("Expected CertificateRevokedException, but " + cause.getClass().getSimpleName() + " was thrown.");
+        fail("Expected CertificateRevokedException, but " + exc.getClass().getCanonicalName() + " was thrown.");
     }
   }
 

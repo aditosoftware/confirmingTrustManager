@@ -2,8 +2,8 @@ package de.adito.trustmanager.confirmingui;
 
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
-import sun.security.util.HostnameChecker;
 
+import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -144,11 +144,17 @@ public class CertificateExceptionDetail
     
     private static boolean _checkHostname(String pHostname, X509Certificate[] pChain)
     {
-        try
-        {
-            HostnameChecker.getInstance(HostnameChecker.TYPE_TLS).match(pHostname, pChain[0]);
+        try {
+            Class<?> checker = Class.forName("sun.security.util.HostnameChecker");
+            Method getInstance = checker.getMethod("getInstance", byte.class);
+            Object instance = getInstance.invoke(null, (byte) 1);
+            Method match = checker.getMethod("match", String.class, X509Certificate.class);
+            match.invoke(instance, pHostname, pChain[0]);
             return true;
-        } catch (CertificateException exc)
+        } catch ( ClassNotFoundException cnfe )
+        {
+            return true;
+        } catch (Exception exc)
         {
             return false;
         }
