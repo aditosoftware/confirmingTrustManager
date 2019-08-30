@@ -18,7 +18,7 @@ class CertificateExceptionDialog extends JDialog
 {
     
     private JPanel extButtonPanel;
-    private JTextArea extendedDialog;
+    private JComponent extendedDialog;
     
     private ResourceBundle bundle;
     private boolean isExtended;
@@ -100,10 +100,15 @@ class CertificateExceptionDialog extends JDialog
     private void _createExtendedDialog()
     {
         //Text Handling
-        extendedDialog = new JTextArea(detailMsg);
+        JTextArea extendedDialogArea = new JTextArea(detailMsg);
+        extendedDialogArea.setEditable(false);
+        extendedDialogArea.setOpaque(false);
+        JScrollPane scrollPane = new JScrollPane(extendedDialogArea);
+        scrollPane.setBorder(null);
+        extendedDialog = new JPanel(new BorderLayout());
+        extendedDialog.setPreferredSize(new Dimension(getPreferredSize().width - 20, 200));
+        extendedDialog.add(scrollPane, BorderLayout.CENTER);
         extendedDialog.setBorder(BorderFactory.createEtchedBorder());
-        extendedDialog.setEditable(false);
-        extendedDialog.setOpaque(false);
 
         GridBagConstraints textConstraints = new GridBagConstraints();
         textConstraints.gridx = 0;
