@@ -40,6 +40,11 @@ public class JKSCustomTrustStore implements ICustomTrustStore
         ks = _loadKS();
         simpleTrustStore = new SimpleCustomTrustStore();
     }
+
+    protected KeyStore getKeyStore()
+    {
+        return ks;
+    }
     
     private KeyStore _loadKS()
     {
